@@ -127,10 +127,10 @@ public class TeleopDriveBlue extends OpMode {
             mechController.tagPattern = new int[]{23, 1, 1, 2}; // ID 23: PPG
         } else if ((gamepad1.dpad_up) && !buttonPressed) {
             buttonPressed = true;
-            slowModeMultiplier += 0.25;
+            MechController.SHOOTING_WHEEL_SPEED_FAR += 10; //slowModeMultiplier += 0.25;
         } else if ((gamepad1.dpad_down) && !buttonPressed) {
             buttonPressed = true;
-            slowModeMultiplier -= 0.25;
+            MechController.SHOOTING_WHEEL_SPEED_FAR -= 10; //slowModeMultiplier -= 0.25;
         }
 
         if (!automatedDrive) {

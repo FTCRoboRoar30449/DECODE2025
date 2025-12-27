@@ -16,37 +16,38 @@ public class MechController {
 
 
     // Hardware constants
-    private static final double SERVO_OFFSET = 22;
-    public static final double[] INTAKE = {0 + SERVO_OFFSET, 138 + SERVO_OFFSET, 271 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Intake Post degrees
-    public static final double[] SHOOT = {194 + SERVO_OFFSET, 334 + SERVO_OFFSET, 466 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Shooting Post degrees 180, 270, 60
+    private static final double SERVO_OFFSET = 322;
+    public static final double[] INTAKE = {0 + SERVO_OFFSET, 135 + SERVO_OFFSET, 271 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Intake Post degrees 0, 120, 240
+    public static final double[] SHOOT = {195 + SERVO_OFFSET, 334 + SERVO_OFFSET, 467 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Shooting Post degrees 180, 300, 420
     private static final double MAX_LIFTER_ROTATION = 300.0; // Degrees
     private static final double MAX_INDEXER_ROTATION = 1800.0; // Degrees
     private static final double INTAKE_TICKS_PER_FULL_ROTATION = 537.7; //Encoder Resolution PPR for RPM 312
     private static final long INTAKE_CUTOFF_MS = 4000; // 4 seconds wait time while searching for artifact
-    private static final long POST_ROTATE_WAIT_MS = 1000; // After every rotation
-    private static final long MOTOR_WAIT_MS = 2000; // 2 seconds for Shooting motor to reach full speed
-    private static final long POST_INDEXER_WAIT_MS = 1000; // 1 second post Indexer rotation
-    private static final long LIFT_WAIT_MS = 2000; // 2 seconds for Lifter in Up position for shooting
-    private static final long DROP_WAIT_MS = 1000; // 1 second post Lifter in Down position
+    private static final long POST_ROTATE_WAIT_MS = 50; // After every intake state rotation
+    private static final long POST_HUMAN_WAIT_MS = 800; // After every human state rotation
+    private static final long MOTOR_WAIT_MS = 1300; // Shooting motor to reach full speed
+    private static final long POST_INDEXER_WAIT_MS = 900; // Post Indexer rotation shooting
+    private static final long LIFT_WAIT_MS = 800; // Lifter in Up position for shooting
+    private static final long DROP_WAIT_MS = 500; // Post Lifter in Down position
     private static final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
     public static final double FULL_DRIVE_POWER = 0.75; // Normal Drive speed
     public static final double INTAKE_DRIVE_POWER = 0.25; // Drive speed during Intake
     static final double SHOOTER_CPR = 28.0; // REV HD Hex encoder counts/rev
     static final double MOTOR_PULLEY_T = 66.0; // Tooth count on motor
     static final double WHEEL_PULLEY_T = 54.0; // Tooth count on flywheel
-    public static final double SHOOTING_WHEEL_SPEED_NEAR = 4800; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
-    public static final double SHOOTING_WHEEL_SPEED_FAR = 6860; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
-    private static final double INDEXER_DEG_PER_SEC_INTAKE = 180.0;
-    private static final double INDEXER_SLOW_END_DEG = 30.0;
+    public static double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
+    public static double SHOOTING_WHEEL_SPEED_FAR = 6700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
+    private static final double INDEXER_DEG_PER_SEC_INTAKE = 200.0;
+    private static final double INDEXER_SLOW_END_DEG = 40.0;
 
     // Limit constants
     private static final int lifterDown = 13; // Lifter down angle degrees
-    private static final int lifterUp = 110; // Lifter up angle degrees
+    private static final int lifterUp = 125; // Lifter up angle degrees
 
     // Variables
     public int[] tagPattern = {0, 0, 0, 0}; // Tag ID & Pattern
-    public int[] indexer = {0,0,0};//{2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
-    private int artifactCount = 0;//3;
+    public int[] indexer = {2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
+    private int artifactCount = 3;
     private double lastIndexer = 1;
     private int lastLifter = 0;
     private int intakeTargetIndex = -1;
@@ -438,7 +439,7 @@ public class MechController {
                     }
 
                 } else {
-                    if (System.currentTimeMillis() - humanStateStart < POST_ROTATE_WAIT_MS) {
+                    if (System.currentTimeMillis() - humanStateStart < POST_HUMAN_WAIT_MS) {
                         break;
                     }
                     int color = visionController.artifactColor(); // Reading sensor color
@@ -700,6 +701,10 @@ public class MechController {
 
         telemetry.addData("Indexer | Lifter",
                 "%.1f° | %.1f°", statusIndexer(), statusLifter());
+
+        telemetry.addData("Shooting Mot FAR RPM", SHOOTING_WHEEL_SPEED_FAR);
+        telemetry.addData("Shooting Mot NEAR RPM", SHOOTING_WHEEL_SPEED_NEAR);
+
 
         //visionController.sensorTelemetry();
         //visionController.aprilTagTelemetry();

@@ -21,7 +21,7 @@ public class VisionController {
     private final Telemetry telemetry;
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
-    private final double MIN_INTAKE_COLOR_DETECTION_DISTANCE = 12.0; // Minimum distance for detecting color in MM
+    private final double MIN_INTAKE_COLOR_DETECTION_DISTANCE = 14.0; // Minimum distance for detecting color in MM
 
     // Constructor
     public VisionController(RobotHardware RoboRoar) {

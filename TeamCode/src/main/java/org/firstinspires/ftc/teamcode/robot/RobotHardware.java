@@ -67,12 +67,13 @@ public class RobotHardware {
         setLaserInputMode();
     }
 
+
     private void setMotorDirections() {
         intakeMot.setDirection(DcMotor.Direction.REVERSE);
         intakeMot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intakeMot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shootingMot.setDirection(DcMotor.Direction.FORWARD);
-        shootingMot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shootingMot.setDirection(DcMotorEx.Direction.FORWARD);
+        shootingMot.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
     }
     private void setLaserInputMode() {
         laserInputR.setMode(DigitalChannel.Mode.INPUT);

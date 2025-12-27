@@ -7,11 +7,12 @@ public class Blue {
     // Auto
     // Start Pose of our robot.
     public static final Pose START_POSE   = new Pose(64, 9, Math.toRadians(90));
-    public static final Pose APRILTAG_POSE = new Pose(58,90, Math.toRadians(90));
+    public static final Pose APRILTAG_POSE = new Pose(64,10, Math.toRadians(90));
 
     // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    public static final Pose SCORE_POSE_NEAR = new Pose(60, 84, Math.toRadians(135));
-    public static final Pose SCORE_POSE_FAR   = new Pose(70, 30, Math.toRadians(120));
+    public static final Pose SCORE_POSE = new Pose(59, 15.8, Math.toRadians(115));
+    public static final Pose SCORE_POSE_NEAR = new Pose(59.3, 80.5, Math.toRadians(133));
+    public static final Pose SCORE_POSE_FAR   = new Pose(83, 21.8, Math.toRadians(122));//new Pose(92, 13.8, Math.toRadians(122));
 
     // Highest (First Set) of Artifacts from the Spike Mark.
     public static final Pose ALIGN1_POSE  = new Pose(50, 84, Math.toRadians(0)); // og = 41.5, 84
@@ -30,10 +31,10 @@ public class Blue {
     public static final Pose GATE_END_POSE = new Pose(17, 72, Math.toRadians(180));
 
     // Human State Pose
-    public static final Pose HUMAN_STATE_POSE = new Pose(130, 12, Math.toRadians(90));
+    public static final Pose HUMAN_STATE_POSE = new Pose(132, 13.8, Math.toRadians(90));
 
     // Endgame
-    public static final Pose ENDGAME_POSE = new Pose(106, 33, Math.toRadians(90));
+    public static final Pose ENDGAME_POSE = new Pose(105.5, 33, Math.toRadians(90));
 
     private Blue() {}
 }
