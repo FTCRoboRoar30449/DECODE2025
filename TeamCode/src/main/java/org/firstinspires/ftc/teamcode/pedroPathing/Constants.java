@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
@@ -18,15 +19,15 @@ public class Constants {
 
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(12.15)
-            .forwardZeroPowerAcceleration(-36.29672187127177)
-            .lateralZeroPowerAcceleration(-58.39758461232313)
+            .forwardZeroPowerAcceleration(-36.115310052404126)
+            .lateralZeroPowerAcceleration(-72.42590361522875)
             .useSecondaryTranslationalPIDF(false)
             .useSecondaryHeadingPIDF(false)
             .useSecondaryDrivePIDF(false)
             .centripetalScaling(0.0005)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.01, 0))
-            .headingPIDFCoefficients(new PIDFCoefficients(0.9, 0, 0.01, 0))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.000065, 0.6, 0));
+            .headingPIDFCoefficients(new PIDFCoefficients(0.7, 0, 0.01, 0))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.00007, 0.6, 0));
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)//Motor Max Speed
@@ -39,8 +40,8 @@ public class Constants {
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .useBrakeModeInTeleOp(true)
-            .xVelocity(73.23969899575542)
-            .yVelocity(59.446667768823815);
+            .xVelocity(77.15426035002461)
+            .yVelocity(61.20139294721948);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(6.6407480315)

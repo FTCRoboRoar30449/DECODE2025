@@ -31,7 +31,8 @@ public class AutoBlue extends OpMode {
 
     private final Pose startPose = Blue.START_POSE;
     private final Pose aprilTagPose = Blue.APRILTAG_POSE;
-    private final Pose scorePose = Blue.SCORE_POSE;
+    private final Pose scorePoseAuto = Blue.SCORE_POSE_AUTO;
+    private final Pose scorePoseNear = Blue.SCORE_POSE_NEAR;
     private final Pose align1Pose = Blue.ALIGN3_POSE;
     private final Pose pickup1Pose = Blue.PICKUP3_POSE;
     private final Pose align2Pose = Blue.ALIGN2_POSE;
@@ -47,13 +48,13 @@ public class AutoBlue extends OpMode {
         aprilTagRead.setLinearHeadingInterpolation(startPose.getHeading(), aprilTagPose.getHeading());
 
         scorePreload = follower.pathBuilder()
-                .addPath(new BezierLine(aprilTagPose, scorePose))
-                .setLinearHeadingInterpolation(aprilTagPose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(aprilTagPose, scorePoseAuto))
+                .setLinearHeadingInterpolation(aprilTagPose.getHeading(), scorePoseAuto.getHeading())
                 .build();
 
         alignPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, align1Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), align1Pose.getHeading())
+                .addPath(new BezierLine(scorePoseAuto, align1Pose))
+                .setLinearHeadingInterpolation(scorePoseAuto.getHeading(), align1Pose.getHeading())
                 .build();
 
         grabPickup1 = follower.pathBuilder()
@@ -62,13 +63,13 @@ public class AutoBlue extends OpMode {
                 .build();
 
         scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(pickup1Pose, scorePoseAuto))
+                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePoseAuto.getHeading())
                 .build();
 
         alignPickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, align2Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), align2Pose.getHeading())
+                .addPath(new BezierLine(scorePoseAuto, align2Pose))
+                .setLinearHeadingInterpolation(scorePoseAuto.getHeading(), align2Pose.getHeading())
                 .build();
 
         grabPickup2 = follower.pathBuilder()
@@ -77,13 +78,13 @@ public class AutoBlue extends OpMode {
                 .build();
 
         scorePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(pickup2Pose, scorePoseNear))
+                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePoseNear.getHeading())
                 .build();
 
         alignPickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, align3Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), align3Pose.getHeading())
+                .addPath(new BezierLine(scorePoseNear, align3Pose))
+                .setLinearHeadingInterpolation(scorePoseNear.getHeading(), align3Pose.getHeading())
                 .build();
 
         grabPickup3 = follower.pathBuilder()
@@ -92,8 +93,8 @@ public class AutoBlue extends OpMode {
                 .build();
 
         scorePickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(pickup3Pose, scorePoseNear))
+                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePoseNear.getHeading())
                 .build();
     }
     public void autonomousPathUpdate() {

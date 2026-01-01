@@ -16,7 +16,7 @@ public class MechController {
 
 
     // Hardware constants
-    private static final double SERVO_OFFSET = 322;
+    private static final double SERVO_OFFSET = 0;
     public static final double[] INTAKE = {0 + SERVO_OFFSET, 135 + SERVO_OFFSET, 271 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Intake Post degrees 0, 120, 240
     public static final double[] SHOOT = {195 + SERVO_OFFSET, 334 + SERVO_OFFSET, 467 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Shooting Post degrees 180, 300, 420
     private static final double MAX_LIFTER_ROTATION = 300.0; // Degrees
@@ -30,13 +30,13 @@ public class MechController {
     private static final long LIFT_WAIT_MS = 800; // Lifter in Up position for shooting
     private static final long DROP_WAIT_MS = 500; // Post Lifter in Down position
     private static final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
-    public static final double FULL_DRIVE_POWER = 0.75; // Normal Drive speed
+    public static final double FULL_DRIVE_POWER = 1.0; // Normal Drive speed
     public static final double INTAKE_DRIVE_POWER = 0.25; // Drive speed during Intake
     static final double SHOOTER_CPR = 28.0; // REV HD Hex encoder counts/rev
     static final double MOTOR_PULLEY_T = 66.0; // Tooth count on motor
     static final double WHEEL_PULLEY_T = 54.0; // Tooth count on flywheel
     public static double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
-    public static double SHOOTING_WHEEL_SPEED_FAR = 6700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
+    public static double SHOOTING_WHEEL_SPEED_FAR = 6680; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
     private static final double INDEXER_DEG_PER_SEC_INTAKE = 200.0;
     private static final double INDEXER_SLOW_END_DEG = 40.0;
 
