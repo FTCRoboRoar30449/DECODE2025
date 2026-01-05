@@ -737,17 +737,24 @@ public class MechController {
         }
     }
 
-    static double flywheelRpmToMotorTicksPerSec(double flywheelRpm) {
-        double motorRpm = flywheelRpm * (WHEEL_PULLEY_T / MOTOR_PULLEY_T);
-        return motorRpm * SHOOTER_CPR / 60.0;
+    double setFlywheelRpm(double flywheelRpm) {
+        return flywheelRpm
+                * (WHEEL_PULLEY_T / MOTOR_PULLEY_T)
+                * (SHOOTER_CPR / 60.0);
+    }
+
+    double getFlywheelRPM() {
+        return robot.shootingMot.getVelocity()
+                * 60.0 / SHOOTER_CPR
+                * MOTOR_PULLEY_T / WHEEL_PULLEY_T;
     }
 
     public void runShootingMot(double power) {
         if (Math.abs(power) > 0.01) {
             if (robot.pinpoint.getPosY(DistanceUnit.INCH) > 48.0) {
-                robot.shootingMot.setVelocity(flywheelRpmToMotorTicksPerSec(SHOOTING_WHEEL_SPEED_NEAR));
+                robot.shootingMot.setVelocity(setFlywheelRpm(SHOOTING_WHEEL_SPEED_NEAR));
             } else {
-                robot.shootingMot.setVelocity(flywheelRpmToMotorTicksPerSec(SHOOTING_WHEEL_SPEED_FAR));
+                robot.shootingMot.setVelocity(setFlywheelRpm(SHOOTING_WHEEL_SPEED_FAR));
             }
         } else {
             robot.shootingMot.setVelocity(0);
@@ -854,9 +861,14 @@ public class MechController {
         telemetry.addData("Indexer | Lifter",
                 "%.1f° | %.1f°", statusIndexer(), statusLifter());
 
-        telemetry.addData("Shooting Mot FAR RPM", SHOOTING_WHEEL_SPEED_FAR);
-        telemetry.addData("Shooting Mot NEAR RPM", SHOOTING_WHEEL_SPEED_NEAR);
-        telemetry.addData("Shooting Mot Actual RPM", robot.shootingMot.getVelocity());
+        telemetry.addData(
+                "Flywheel RPM (Near | Act | Far)",
+                "%.0f | %.0f | %.0f",
+                SHOOTING_WHEEL_SPEED_NEAR,
+                getFlywheelRPM(),
+                SHOOTING_WHEEL_SPEED_FAR
+        );
+
         telemetry.addData("Battery Voltage", "%.2f V", visionController.getBatteryVoltage());
 
         //visionController.sensorTelemetry();
