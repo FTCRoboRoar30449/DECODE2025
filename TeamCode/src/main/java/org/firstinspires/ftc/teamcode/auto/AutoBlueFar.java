@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.field.Blue;
 import org.firstinspires.ftc.teamcode.field.Blue_FarNear;
-import org.firstinspires.ftc.teamcode.field.Blue_NearFar;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.MechController;
 import org.firstinspires.ftc.teamcode.robot.MechState;
@@ -20,9 +19,9 @@ import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 
+@Autonomous(name = "AutoBlueFar", group = "Auto")
+public class AutoBlueFar extends OpMode {
 
-    @Autonomous(name = "AutoBlueNear", group = "Auto")
-    public class AutoBlueNear extends OpMode {
 
         RobotHardware robot;
         MechController mechController;
@@ -33,19 +32,19 @@ import org.firstinspires.ftc.vision.VisionPortal;
         private Timer pathTimer, actionTimer, opmodeTimer;
         private int pathState;
 
-        private final Pose startPose = Blue_NearFar.START_POSE;
-        private final Pose aprilTagPose = Blue_NearFar.APRILTAG_POSE;
-        private final Pose scorePoseAuto = Blue_NearFar.SCORE_POSE_AUTO;
-        private final Pose scorePoseNear = Blue_NearFar.SCORE_POSE_NEAR;
-        private final Pose ready1Pose = Blue_NearFar.READY3_POSE;
-        private final Pose align1Pose = Blue_NearFar.ALIGN3_POSE;
-        private final Pose pickup1Pose = Blue_NearFar.PICKUP3_POSE;
-        private final Pose ready2Pose = Blue_NearFar.READY2_POSE;
-        private final Pose align2Pose = Blue_NearFar.ALIGN2_POSE;
-        private final Pose pickup2Pose = Blue_NearFar.PICKUP2_POSE;
-        private final Pose ready3Pose = Blue_NearFar.READY1_POSE;
-        private final Pose align3Pose = Blue_NearFar.ALIGN1_POSE;
-        private final Pose pickup3Pose = Blue_NearFar.PICKUP1_POSE;
+        private final Pose startPose = Blue_FarNear.START_POSE;
+        private final Pose aprilTagPose = Blue_FarNear.APRILTAG_POSE;
+        private final Pose scorePoseAuto = Blue_FarNear.SCORE_POSE_AUTO;
+        private final Pose scorePoseNear = Blue_FarNear.SCORE_POSE_NEAR;
+        private final Pose ready1Pose = Blue_FarNear.READY3_POSE;
+        private final Pose align1Pose = Blue_FarNear.ALIGN3_POSE;
+        private final Pose pickup1Pose = Blue_FarNear.PICKUP3_POSE;
+        private final Pose ready2Pose = Blue_FarNear.READY2_POSE;
+        private final Pose align2Pose = Blue_FarNear.ALIGN2_POSE;
+        private final Pose pickup2Pose = Blue_FarNear.PICKUP2_POSE;
+        private final Pose ready3Pose = Blue_FarNear.READY1_POSE;
+        private final Pose align3Pose = Blue_FarNear.ALIGN1_POSE;
+        private final Pose pickup3Pose = Blue_FarNear.PICKUP1_POSE;
 
 
         private Path aprilTagRead;
@@ -56,13 +55,13 @@ import org.firstinspires.ftc.vision.VisionPortal;
             aprilTagRead.setLinearHeadingInterpolation(startPose.getHeading(), aprilTagPose.getHeading());
 
             scorePreload = follower.pathBuilder()
-                    .addPath(new BezierLine(aprilTagPose, scorePoseNear))
-                    .setLinearHeadingInterpolation(aprilTagPose.getHeading(), scorePoseNear.getHeading())
+                    .addPath(new BezierLine(aprilTagPose, scorePoseAuto))
+                    .setLinearHeadingInterpolation(aprilTagPose.getHeading(), scorePoseAuto.getHeading())
                     .build();
 
             readyPickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(scorePoseNear, ready1Pose))
-                    .setLinearHeadingInterpolation(scorePoseNear.getHeading(), ready1Pose.getHeading())
+                    .addPath(new BezierLine(scorePoseAuto, ready1Pose))
+                    .setLinearHeadingInterpolation(scorePoseAuto.getHeading(), ready1Pose.getHeading())
                     .build();
 
             alignPickup1 = follower.pathBuilder()
@@ -76,13 +75,13 @@ import org.firstinspires.ftc.vision.VisionPortal;
                     .build();
 
             scorePickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(pickup1Pose, scorePoseNear))
-                    .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePoseNear.getHeading())
+                    .addPath(new BezierLine(pickup1Pose, scorePoseAuto))
+                    .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePoseAuto.getHeading())
                     .build();
 
             readyPickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(scorePoseNear, ready2Pose))
-                    .setLinearHeadingInterpolation(scorePoseNear.getHeading(), ready2Pose.getHeading())
+                    .addPath(new BezierLine(scorePoseAuto, ready2Pose))
+                    .setLinearHeadingInterpolation(scorePoseAuto.getHeading(), ready2Pose.getHeading())
                     .build();
 
             alignPickup2 = follower.pathBuilder()
@@ -96,13 +95,13 @@ import org.firstinspires.ftc.vision.VisionPortal;
                     .build();
 
             scorePickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(pickup2Pose, scorePoseNear))
-                    .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePoseNear.getHeading())
+                    .addPath(new BezierLine(pickup2Pose, scorePoseAuto))
+                    .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePoseAuto.getHeading())
                     .build();
 
             readyPickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(scorePoseNear, ready3Pose))
-                    .setLinearHeadingInterpolation(scorePoseNear.getHeading(), ready3Pose.getHeading())
+                    .addPath(new BezierLine(scorePoseAuto, ready3Pose))
+                    .setLinearHeadingInterpolation(scorePoseAuto.getHeading(), ready3Pose.getHeading())
                     .build();
 
             alignPickup3 = follower.pathBuilder()
@@ -116,8 +115,8 @@ import org.firstinspires.ftc.vision.VisionPortal;
                     .build();
 
             scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(pickup3Pose, scorePoseAuto))
-                    .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePoseAuto.getHeading())
+                    .addPath(new BezierLine(pickup3Pose, scorePoseNear))
+                    .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePoseNear.getHeading())
                     .build();
         }
         public void autonomousPathUpdate() {
