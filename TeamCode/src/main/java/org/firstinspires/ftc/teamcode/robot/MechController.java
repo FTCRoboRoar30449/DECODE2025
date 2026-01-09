@@ -36,10 +36,12 @@ public class MechController {
     static final double SHOOTER_CPR = 28.0; // REV HD Hex encoder counts/rev
     static final double MOTOR_PULLEY_T = 66.0; // Tooth count on motor
     static final double WHEEL_PULLEY_T = 54.0; // Tooth count on flywheel
-    public static double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
-    public static double SHOOTING_WHEEL_SPEED_FAR = 5700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
+    public static final double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
+    public static final double SHOOTING_WHEEL_SPEED_FAR = 5700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
     private static final double INDEXER_DEG_PER_SEC_INTAKE = 180.0;
     private static final double INDEXER_SLOW_END_DEG = 40.0;
+    private static final double RPM_TOLERANCE = 100.0;
+    private static final double INDEXER_TOLERANCE = 3.0;
 
     // Limit constants
     private static final int lifterDown = 13; // Lifter down angle degrees
@@ -47,8 +49,8 @@ public class MechController {
 
     // Variables
     public int[] tagPattern = {0, 0, 0, 0}; // Tag ID & Pattern
-    public int[] indexer = {0, 0, 0};//{2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
-    private int artifactCount = 0;//3;
+    public int[] indexer = {2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
+    private int artifactCount = 3;
     private double lastIndexer = 1;
     private int lastLifter = 0;
     private int intakeTargetIndex = -1;
@@ -74,6 +76,7 @@ public class MechController {
     private double intakeIndexerStartDeg = -1;
     private boolean artifactCounted = false;
     private double farRPM = 0;
+    private double flyWheelRPM = 0;
 
     // Constructor
     public MechController(RobotHardware RoboRoar, VisionController visionController) {
@@ -102,16 +105,17 @@ public class MechController {
                 if (!shootingMotorRunning) { // Start shooting Motor
                     runShootingMot(1);
                     shootingMotorRunning = true;
-                    if (!motorInitialWaitDone) {
-                        shootStageStart = System.currentTimeMillis();
-                        shootStage = -1;
-                    }
+                    shootStage = 0;
+//                    if (!motorInitialWaitDone) {
+//                        shootStageStart = System.currentTimeMillis();
+//                        shootStage = -1;
+//                    }
                 }
 
                 if (shootPatternIndex >= tagPattern.length || artifactCount <= 0) {
                     runShootingMot(0); // Stop shooting stage
                     shootingMotorRunning = false;
-                    motorInitialWaitDone = false;
+                   // motorInitialWaitDone = false;
                     shootStage = 0;
                     shootPatternIndex = 1;
                     slotToShoot = -1;
@@ -122,14 +126,14 @@ public class MechController {
 
                 // Shooting stage machine
                 switch (shootStage) {
-                    case -1:
-                        shootElapsed = System.currentTimeMillis() - shootStageStart;
-                        if (shootElapsed >= MOTOR_WAIT_MS) { // Waiting for shooting motor to reach full speed
-                            motorInitialWaitDone = true;
-                            shootStageStart = System.currentTimeMillis();
-                            shootStage = 0;
-                        }
-                        break;
+//                    case -1:
+//                        shootElapsed = System.currentTimeMillis() - shootStageStart;
+//                        if (shootElapsed >= MOTOR_WAIT_MS) { // Waiting for shooting motor to reach full speed
+//                            motorInitialWaitDone = true;
+//                            shootStageStart = System.currentTimeMillis();
+//                            shootStage = 0;
+//                        }
+//                        break;
 
                     case 0:
                         if (slotToShoot == -1) {
@@ -159,10 +163,15 @@ public class MechController {
                         break;
 
                     case 1:
-                        setLifter(1); // Lifter up
-                        shootStageStart = System.currentTimeMillis();
-                        shootStage = 2;
-                        break;
+                        boolean rpmReady = Math.abs(getFlywheelRPM() - flyWheelRPM) <= RPM_TOLERANCE;
+                        boolean indexerReady = Math.abs(statusIndexer() - SHOOT[slotToShoot]) <= INDEXER_TOLERANCE;
+                        if (rpmReady && indexerReady) {
+                            setLifter(1); // Lifter up
+                            shootStageStart = System.currentTimeMillis();
+                            shootStage = 2;
+                            break;
+                        }
+
 
                     case 2:
                         shootElapsed = System.currentTimeMillis() - shootStageStart;
@@ -206,7 +215,7 @@ public class MechController {
                                 break;
                             } else { //Slow indexer start
                                 if (intakeIndexerTargetDeg < 0) {
-                                    intakeIndexerTargetDeg = (statusIndexer() + 60);
+                                    intakeIndexerTargetDeg = (statusIndexer() + 62);
                                     indexerLastUpdateMs = 0;
                                 }
                                 if (setIndexerIntake(intakeIndexerTargetDeg)) {
@@ -692,33 +701,30 @@ public class MechController {
         if (Math.abs(power) > 0.01) {
             if (robot.pinpoint.getPosY(DistanceUnit.INCH) > 48.0) {
                 robot.shootingMot.setVelocity(setFlywheelRpm(SHOOTING_WHEEL_SPEED_NEAR));
+                flyWheelRPM = SHOOTING_WHEEL_SPEED_NEAR;
             } else {
-                robot.shootingMot.setVelocity(setFlywheelRpm(SHOOTING_WHEEL_SPEED_FAR));
+                robot.shootingMot.setVelocity(setFlywheelRpm(getShootingFarRPM()));
+                flyWheelRPM = getShootingFarRPM();
             }
         } else {
             robot.shootingMot.setVelocity(0);
+            flyWheelRPM = 0;
         }
     }
 
-//    private double getShootingFarRPM() {
-//        double voltage = robot.getBatteryVoltage();
-//        if (voltage > 13.5) {
-//            farRPM = SHOOTING_WHEEL_SPEED_FAR;
-//        } else if (voltage > 13.25) {
-//            farRPM = SHOOTING_WHEEL_SPEED_FAR + 100;
-//        } else if (voltage > 13.0) {
-//            farRPM = SHOOTING_WHEEL_SPEED_FAR + 200;
-//        } else if (voltage > 12.75) {
-//            farRPM = SHOOTING_WHEEL_SPEED_FAR + 300;
-//        } else if (voltage > 12.5) {
-//            farRPM = SHOOTING_WHEEL_SPEED_FAR + 400;
-//        } else if (voltage > 12.25) {
-//            farRPM = SHOOTING_WHEEL_SPEED_FAR + 500;
-//        } else {
-//            farRPM = SHOOTING_WHEEL_SPEED_FAR + 600;
-//        }
-//        return farRPM;
-//    }
+    private double getShootingFarRPM() {
+        double voltage = robot.getBatteryVoltage();
+        if (voltage > 13.0) {
+            farRPM = SHOOTING_WHEEL_SPEED_FAR - 100;
+        } else if (voltage > 12.8) {
+            farRPM = SHOOTING_WHEEL_SPEED_FAR;
+        } else if (voltage > 12.6) {
+            farRPM = SHOOTING_WHEEL_SPEED_FAR + 100;
+        } else {
+            farRPM = SHOOTING_WHEEL_SPEED_FAR + 200;
+        }
+        return farRPM;
+    }
 
     public void setLifter(int down0up1) {
         if (lastLifter != down0up1) {
@@ -797,14 +803,13 @@ public class MechController {
         }
 
         telemetry.addData("Indexer | Lifter",
-                "%.1f° | %.1f°", statusIndexer(), statusLifter());
+                "%.1f° | %.1f°", (statusIndexer() - SERVO_OFFSET), statusLifter());
 
         telemetry.addData(
-                "Flywheel RPM (Near | Act | Far)",
-                "%.0f | %.0f | %.0f",
-                SHOOTING_WHEEL_SPEED_NEAR,
-                getFlywheelRPM(),
-                SHOOTING_WHEEL_SPEED_FAR
+                "Flywheel RPM Target | Actual)",
+                "%.0f | %.0f",
+                flyWheelRPM,
+                Math.abs(getFlywheelRPM())
         );
 
         telemetry.addData("Battery Voltage", "%.2f V", robot.getBatteryVoltage());
@@ -814,5 +819,4 @@ public class MechController {
 
         telemetry.update();
     }
-
 }

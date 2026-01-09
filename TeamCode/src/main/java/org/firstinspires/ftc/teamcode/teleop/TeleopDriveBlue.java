@@ -117,13 +117,13 @@ public class TeleopDriveBlue extends OpMode {
         } else if ((gamepad2.dpad_down) && !buttonPressed) {
             buttonPressed = true;
             mechController.tagPattern = new int[]{23, 1, 1, 2}; // ID 23: PPG
-        } else if ((gamepad1.dpad_up) && !buttonPressed) {
+        } /*else if ((gamepad1.dpad_up) && !buttonPressed) {
             buttonPressed = true;
             MechController.SHOOTING_WHEEL_SPEED_FAR += 10; //slowModeMultiplier += 0.25;
         } else if ((gamepad1.dpad_down) && !buttonPressed) {
             buttonPressed = true;
             MechController.SHOOTING_WHEEL_SPEED_FAR -= 10; //slowModeMultiplier -= 0.25;
-        }
+        } */
 
         if (!automatedDrive) {
             if (!slowMode) follower.setTeleOpDrive(
@@ -210,9 +210,9 @@ public class TeleopDriveBlue extends OpMode {
                 !gamepad2.b &&
                 !gamepad2.dpad_up &&
                 !gamepad2.dpad_right &&
-                !gamepad2.dpad_down &&
-                !gamepad1.dpad_up &&
-                !gamepad1.dpad_down;
+                !gamepad2.dpad_down;
+                //!gamepad1.dpad_up &&
+                //!gamepad1.dpad_down;
 
         if (noButtons) {
             buttonPressed = false;
