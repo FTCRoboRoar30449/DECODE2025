@@ -25,7 +25,6 @@ public class MechController {
     private static final long INTAKE_CUTOFF_MS = 4000; // 4 seconds wait time while searching for artifact
     private static final long POST_ROTATE_WAIT_MS = 90; // After every intake state rotation
     private static final long POST_HUMAN_WAIT_MS = 800; // After every human state rotation
-    private static final long MOTOR_WAIT_MS = 1300; // Shooting motor to reach full speed
     private static final long POST_INDEXER_WAIT_MS = 900; // Post Indexer rotation shooting
     private static final long LIFT_WAIT_MS = 800; // Lifter in Up position for shooting
     private static final long DROP_WAIT_MS = 500; // Post Lifter in Down position
@@ -37,7 +36,7 @@ public class MechController {
     static final double MOTOR_PULLEY_T = 66.0; // Tooth count on motor
     static final double WHEEL_PULLEY_T = 54.0; // Tooth count on flywheel
     public static final double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
-    public static final double SHOOTING_WHEEL_SPEED_FAR = 5700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
+    public static double SHOOTING_WHEEL_SPEED_FAR = 5700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
     private static final double INDEXER_DEG_PER_SEC_INTAKE = 180.0;
     private static final double INDEXER_SLOW_END_DEG = 40.0;
     private static final double RPM_TOLERANCE = 100.0;
@@ -49,15 +48,14 @@ public class MechController {
 
     // Variables
     public int[] tagPattern = {0, 0, 0, 0}; // Tag ID & Pattern
-    public int[] indexer = {2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
-    private int artifactCount = 3;
+    public int[] indexer = {0, 0, 0}; //{2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
+    private int artifactCount = 0; //3;
     private double lastIndexer = 1;
     private int lastLifter = 0;
     private int intakeTargetIndex = -1;
     private int intakeStage = 0;
     private long intakeStageStart = 0;
     private boolean shootingMotorRunning = false;
-    private boolean motorInitialWaitDone = false;
     private int shootPatternIndex = 1;
     private int slotToShoot = -1;
     private long shootStageStart = 0;
@@ -77,6 +75,8 @@ public class MechController {
     private boolean artifactCounted = false;
     private double farRPM = 0;
     private double flyWheelRPM = 0;
+    private int purpleIndex = -1;
+    private int greenIndex = -1;
 
     // Constructor
     public MechController(RobotHardware RoboRoar, VisionController visionController) {
@@ -211,7 +211,9 @@ public class MechController {
                         intakeTargetIndex = getEmptyIndex();
                         if (intakeTargetIndex == -1) { // Stop intake stage
                             if (!lastIntake) {
+                                runIntakeMot(0);
                                 setState(MechState.IDLE);
+                                intakeStage = 0;
                                 break;
                             } else { //Slow indexer start
                                 if (intakeIndexerTargetDeg < 0) {
@@ -219,11 +221,11 @@ public class MechController {
                                     indexerLastUpdateMs = 0;
                                 }
                                 if (setIndexerIntake(intakeIndexerTargetDeg)) {
-                                    intakeStage = 1;
                                     intakeIndexerTargetDeg = -1;
-                                    intakeStageStart = System.currentTimeMillis();
                                     lastIntake = false;
+                                    runIntakeMot(0);
                                     setState(MechState.IDLE);
+                                    intakeStage = 0;
                                 }
                                 break;
                             }
@@ -237,23 +239,21 @@ public class MechController {
                                 indexerLastUpdateMs = 0;
                             }
                             if (setIndexerIntake(intakeIndexerTargetDeg)) {
-                                intakeStage = 1;
                                 intakeIndexerTargetDeg = -1;
-                                intakeStageStart = System.currentTimeMillis();
+                            } else {
+                                break;
                             }
-                            break;
                         }
-                        //Slow indexer stop
-                        //setIndexer(INTAKE[intakeTargetIndex]); // Original code
                         intakeStageStart = System.currentTimeMillis();
+                        if (robot.intakeMot.getPower() == 0) {
+                            runIntakeMot(1);
+                        }
                         intakeStage = 1;
                         break;
 
                     case 1:
                         if (System.currentTimeMillis() - intakeStageStart < POST_ROTATE_WAIT_MS) // Wait for indexer rotate
                             break;
-
-                        runIntakeMot(1);
                         intakeStageStart = System.currentTimeMillis();   // Start timer
                         intakeStage = 2;
                         break;
@@ -263,7 +263,6 @@ public class MechController {
                         boolean detected = color != 0;
 
                         if (detected) { // Artifact detection
-                            runIntakeMot(0);
                             indexer[intakeTargetIndex] = color;
                             artifactCount++;
                             if (artifactCount == 3) { //Checks for last intake
@@ -278,13 +277,12 @@ public class MechController {
                             runIntakeMot(0);
                             setState(MechState.IDLE);
                             intakeStage = 0;
-                            break;
                         }
-
                         break;
 
                     case 3:
                         if (System.currentTimeMillis() - intakeStageStart >= POST_ROTATE_WAIT_MS) { // Wait time after detected artifact
+                            intakeStageStart = 0;
                             intakeStage = 0;
                         }
                         break;
@@ -360,13 +358,13 @@ public class MechController {
             case SHOOT_PURPLE:
                 currentState = MechState.SHOOT_PURPLE;
                 if (!shootingMotorRunning) {
-                    int purpleIndex = getPurpleIndex();
+                    purpleIndex = getPurpleIndex();
                     if (purpleIndex != -1) {
                         runShootingMot(1); // Start shooter
                         shootingMotorRunning = true;
                         setIndexer(SHOOT[purpleIndex]); // Setting indexer to shooting position
                         shootStageStart = System.currentTimeMillis();
-                        shootStage = -1;
+                        shootStage = 1;
                     } else {
                         setState(MechState.IDLE);
                         break;
@@ -374,26 +372,20 @@ public class MechController {
                 }
 
                 switch (shootStage) {
-                    case -1:
-                        shootElapsed = System.currentTimeMillis() - shootStageStart;
-                        if (shootElapsed >= MOTOR_WAIT_MS) {
-                            motorInitialWaitDone = true;
-                            shootStageStart = System.currentTimeMillis();
-                            shootStage = 1;
-                        }
-                        break;
-
                     case 1:
-                        setLifter(1); // Lifter up
-                        shootStageStart = System.currentTimeMillis();
-                        shootStage = 2;
+                        boolean rpmReady = Math.abs(getFlywheelRPM() - flyWheelRPM) <= RPM_TOLERANCE;
+                        boolean indexerReady = Math.abs(statusIndexer() - SHOOT[purpleIndex]) <= INDEXER_TOLERANCE;
+                        if (rpmReady && indexerReady) {
+                            setLifter(1); // Lifter up
+                            shootStageStart = System.currentTimeMillis();
+                            shootStage = 2;
+                        }
                         break;
 
                     case 2:
                         shootElapsed = System.currentTimeMillis() - shootStageStart;
                         if (shootElapsed >= LIFT_WAIT_MS) {
                             setLifter(0); // Lifter down
-                            runShootingMot(0);
                             shootStageStart = System.currentTimeMillis();
                             shootStage = 3;
                         }
@@ -402,12 +394,11 @@ public class MechController {
                     case 3:
                         shootElapsed = System.currentTimeMillis() - shootStageStart;
                         if (shootElapsed >= DROP_WAIT_MS) {
-                            int purpleIndex = getPurpleIndex();
-                            if (purpleIndex != -1) {
+                            if (purpleIndex >= 0) {
                                 indexer[purpleIndex] = 0;
                             }
+                            runShootingMot(0);
                             shootingMotorRunning = false;
-                            motorInitialWaitDone = false;
                             artifactCount--;
                             shootStage = 0;
                             shootElapsed = 0;
@@ -420,13 +411,13 @@ public class MechController {
             case SHOOT_GREEN:
                 currentState = MechState.SHOOT_GREEN;
                 if (!shootingMotorRunning) {
-                    int greenIndex = getGreenIndex();
+                    greenIndex = getGreenIndex();
                     if (greenIndex != -1) {
                         runShootingMot(1); // Start shooter
                         shootingMotorRunning = true;
                         setIndexer(SHOOT[greenIndex]); // Setting indexer to shooting position
                         shootStageStart = System.currentTimeMillis();
-                        shootStage = -1;
+                        shootStage = 1;
                     } else {
                         setState(MechState.IDLE);
                         break;
@@ -434,26 +425,20 @@ public class MechController {
                 }
 
                 switch (shootStage) {
-                    case -1:
-                        shootElapsed = System.currentTimeMillis() - shootStageStart;
-                        if (shootElapsed >= MOTOR_WAIT_MS) {
-                            motorInitialWaitDone = true;
-                            shootStageStart = System.currentTimeMillis();
-                            shootStage = 1;
-                        }
-                        break;
-
                     case 1:
-                        setLifter(1); // Lifter up
-                        shootStageStart = System.currentTimeMillis();
-                        shootStage = 2;
+                        boolean rpmReady = Math.abs(getFlywheelRPM() - flyWheelRPM) <= RPM_TOLERANCE;
+                        boolean indexerReady = Math.abs(statusIndexer() - SHOOT[greenIndex]) <= INDEXER_TOLERANCE;
+                        if (rpmReady && indexerReady) {
+                            setLifter(1); // Lifter up
+                            shootStageStart = System.currentTimeMillis();
+                            shootStage = 2;
+                        }
                         break;
 
                     case 2:
                         shootElapsed = System.currentTimeMillis() - shootStageStart;
                         if (shootElapsed >= LIFT_WAIT_MS) {
                             setLifter(0); // Lifter down
-                            runShootingMot(0);
                             shootStageStart = System.currentTimeMillis();
                             shootStage = 3;
                         }
@@ -462,12 +447,11 @@ public class MechController {
                     case 3:
                         shootElapsed = System.currentTimeMillis() - shootStageStart;
                         if (shootElapsed >= DROP_WAIT_MS) {
-                            int greenIndex = getGreenIndex();
-                            if (greenIndex != -1) {
+                            if (greenIndex >= 0) {
                                 indexer[greenIndex] = 0;
                             }
+                            runShootingMot(0);
                             shootingMotorRunning = false;
-                            motorInitialWaitDone = false;
                             artifactCount--;
                             shootStage = 0;
                             shootElapsed = 0;
@@ -557,7 +541,6 @@ public class MechController {
                 // Ensure shooter is off and shooting state is reset
                 runShootingMot(0);
                 shootingMotorRunning = false;
-                motorInitialWaitDone = false;
                 shootStage = 0;
                 shootPatternIndex = 1;
                 slotToShoot = -1;
@@ -590,7 +573,6 @@ public class MechController {
             // Stop shooter
             runShootingMot(0);
             shootingMotorRunning = false;
-            motorInitialWaitDone = false;
 
             // Ensure lifter is down
             setLifter(0);
@@ -668,20 +650,24 @@ public class MechController {
 
     public void runIntakeMot(double power) {
         if (Math.abs(power) > 0.01) {
-            robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            targetPos = 0;
+            if (robot.intakeMot.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) {
+                robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
             robot.intakeMot.setPower(power);
+            return;
+        }
+        if (targetPos == 0) {
             double currentPos = robot.intakeMot.getCurrentPosition();
-            targetPos = (int)(((Math.ceil(currentPos / INTAKE_TICKS_PER_FULL_ROTATION)) + 1) * INTAKE_TICKS_PER_FULL_ROTATION);
-
-        } else if (robot.intakeMot.getCurrentPosition() < targetPos) {
+            targetPos = (int) ((Math.ceil(currentPos / INTAKE_TICKS_PER_FULL_ROTATION) + 1) * INTAKE_TICKS_PER_FULL_ROTATION);
             robot.intakeMot.setTargetPosition(targetPos);
             robot.intakeMot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.intakeMot.setPower(0.5);
-
-        } else {
+        }
+        if (!robot.intakeMot.isBusy()) {
             robot.intakeMot.setPower(0);
             robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            targetPos = robot.intakeMot.getCurrentPosition();
+            targetPos = 0;
         }
     }
 

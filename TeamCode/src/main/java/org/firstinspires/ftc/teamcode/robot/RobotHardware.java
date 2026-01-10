@@ -26,10 +26,10 @@ public class RobotHardware {
     public final WebcamName camera;
     private final HardwareMap hwMap;
 
-    double kP = 60.0;
-    double kI = 0.0;
-    double kD = 0.0;
-    double kF = 13.6;
+    public double kP = 60.0;
+    public double kI = 0.0;
+    public double kD = 0.0;
+    public double kF = 13.6;
     /*
      * Position:
      * If all values are zero (no translation), that implies the camera is at the center of the
@@ -73,6 +73,7 @@ public class RobotHardware {
     private void setMotorDirections() {
         intakeMot.setDirection(DcMotor.Direction.REVERSE);
         intakeMot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intakeMot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intakeMot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shootingMot.setDirection(DcMotorEx.Direction.FORWARD);
         shootingMot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
