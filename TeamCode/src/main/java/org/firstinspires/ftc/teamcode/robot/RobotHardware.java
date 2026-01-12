@@ -26,10 +26,10 @@ public class RobotHardware {
     public final WebcamName camera;
     private final HardwareMap hwMap;
 
-    public double kP = 60.0;
-    public double kI = 0.0;
-    public double kD = 0.0;
-    public double kF = 13.6;
+    double kP = 65.0;
+    double kI = 0.0;
+    double kD = 0.0;
+    double kF = 13.6;
     /*
      * Position:
      * If all values are zero (no translation), that implies the camera is at the center of the

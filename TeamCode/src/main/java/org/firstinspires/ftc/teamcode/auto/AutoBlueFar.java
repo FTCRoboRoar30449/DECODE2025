@@ -237,7 +237,7 @@ public class AutoBlueFar extends OpMode {
             autonomousPathUpdate();
 
             MechState state = mechController.getCurrentState();
-            if (state == MechState.SHOOT_STATE) {
+            if (state == MechState.SHOOT_STATE || state == MechState.APRIL_TAG) {
                 follower.setMaxPower(0.0);
             } else if (state == MechState.INTAKE_STATE) {
                 follower.setMaxPower(MechController.INTAKE_DRIVE_POWER);

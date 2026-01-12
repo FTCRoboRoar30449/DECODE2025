@@ -25,7 +25,7 @@ public class MechController {
     private static final long INTAKE_CUTOFF_MS = 4000; // 4 seconds wait time while searching for artifact
     private static final long POST_ROTATE_WAIT_MS = 90; // After every intake state rotation
     private static final long POST_HUMAN_WAIT_MS = 800; // After every human state rotation
-    private static final long POST_INDEXER_WAIT_MS = 900; // Post Indexer rotation shooting
+    private static final long POST_INDEXER_WAIT_MS = 1000; // Post Indexer rotation shooting
     private static final long LIFT_WAIT_MS = 800; // Lifter in Up position for shooting
     private static final long DROP_WAIT_MS = 500; // Post Lifter in Down position
     private static final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
@@ -37,7 +37,7 @@ public class MechController {
     static final double WHEEL_PULLEY_T = 54.0; // Tooth count on flywheel
     public static final double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
     public static double SHOOTING_WHEEL_SPEED_FAR = 5700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
-    private static final double INDEXER_DEG_PER_SEC_INTAKE = 180.0;
+    private static final double INDEXER_DEG_PER_SEC_INTAKE = 160.0;
     private static final double INDEXER_SLOW_END_DEG = 40.0;
     private static final double RPM_TOLERANCE = 100.0;
     private static final double INDEXER_TOLERANCE = 3.0;
@@ -67,7 +67,7 @@ public class MechController {
     private boolean humanIntakeRunning = false;
     private int humanIndex = -1;
     private long humanStateStart = 0;
-    private int targetPos;
+    private int targetPos = -1;
     private long indexerLastUpdateMs = 0;
     private double intakeIndexerTargetDeg = -1;
     private boolean lastIntake = false;
@@ -77,6 +77,7 @@ public class MechController {
     private double flyWheelRPM = 0;
     private int purpleIndex = -1;
     private int greenIndex = -1;
+    private boolean intakeStopping = false;
 
     // Constructor
     public MechController(RobotHardware RoboRoar, VisionController visionController) {
@@ -106,16 +107,11 @@ public class MechController {
                     runShootingMot(1);
                     shootingMotorRunning = true;
                     shootStage = 0;
-//                    if (!motorInitialWaitDone) {
-//                        shootStageStart = System.currentTimeMillis();
-//                        shootStage = -1;
-//                    }
                 }
 
                 if (shootPatternIndex >= tagPattern.length || artifactCount <= 0) {
                     runShootingMot(0); // Stop shooting stage
                     shootingMotorRunning = false;
-                   // motorInitialWaitDone = false;
                     shootStage = 0;
                     shootPatternIndex = 1;
                     slotToShoot = -1;
@@ -126,15 +122,6 @@ public class MechController {
 
                 // Shooting stage machine
                 switch (shootStage) {
-//                    case -1:
-//                        shootElapsed = System.currentTimeMillis() - shootStageStart;
-//                        if (shootElapsed >= MOTOR_WAIT_MS) { // Waiting for shooting motor to reach full speed
-//                            motorInitialWaitDone = true;
-//                            shootStageStart = System.currentTimeMillis();
-//                            shootStage = 0;
-//                        }
-//                        break;
-
                     case 0:
                         if (slotToShoot == -1) {
                             int targetColor = tagPattern[shootPatternIndex]; // Checking motif pattern color to shoot
@@ -169,8 +156,8 @@ public class MechController {
                             setLifter(1); // Lifter up
                             shootStageStart = System.currentTimeMillis();
                             shootStage = 2;
-                            break;
                         }
+                        break;
 
 
                     case 2:
@@ -211,10 +198,11 @@ public class MechController {
                         intakeTargetIndex = getEmptyIndex();
                         if (intakeTargetIndex == -1) { // Stop intake stage
                             if (!lastIntake) {
-                                runIntakeMot(0);
-                                setState(MechState.IDLE);
-                                intakeStage = 0;
-                                break;
+                                if (stopIntakeMot()) {
+                                    setState(MechState.IDLE);
+                                    intakeStage = 0;
+                                    break;
+                                }
                             } else { //Slow indexer start
                                 if (intakeIndexerTargetDeg < 0) {
                                     intakeIndexerTargetDeg = (statusIndexer() + 62);
@@ -223,12 +211,15 @@ public class MechController {
                                 if (setIndexerIntake(intakeIndexerTargetDeg)) {
                                     intakeIndexerTargetDeg = -1;
                                     lastIntake = false;
-                                    runIntakeMot(0);
-                                    setState(MechState.IDLE);
-                                    intakeStage = 0;
+                                    if (stopIntakeMot()) {
+                                        setState(MechState.IDLE);
+                                        intakeStage = 0;
+                                        break;
+                                    }
                                 }
                                 break;
                             }
+                            break;
                         }
 
                         if (artifactCount < 1) {
@@ -245,9 +236,7 @@ public class MechController {
                             }
                         }
                         intakeStageStart = System.currentTimeMillis();
-                        if (robot.intakeMot.getPower() == 0) {
-                            runIntakeMot(1);
-                        }
+                        runIntakeMot();
                         intakeStage = 1;
                         break;
 
@@ -274,9 +263,10 @@ public class MechController {
                         }
 
                         if (System.currentTimeMillis() - intakeStageStart >= INTAKE_CUTOFF_MS) { // Timer cut-off
-                            runIntakeMot(0);
-                            setState(MechState.IDLE);
-                            intakeStage = 0;
+                            if (stopIntakeMot()) {
+                                setState(MechState.IDLE);
+                                intakeStage = 0;
+                            }
                         }
                         break;
 
@@ -303,23 +293,26 @@ public class MechController {
                                     indexerLastUpdateMs = System.currentTimeMillis();
                                 }
                                 if (setIndexerIntake(intakeIndexerTargetDeg)) {
-                                    runIntakeMot(0);
-                                    intakeIndexerTargetDeg = -1;
-                                    lastIntake = false;
-                                    artifactCounted = false;
-                                    intakeStage = 0;
+                                    if (stopIntakeMot()) {
+                                        intakeIndexerTargetDeg = -1;
+                                        lastIntake = false;
+                                        artifactCounted = false;
+                                        intakeStage = 0;
+                                        break;
+                                    }
+                                    break;
                                 }
                                 break;
                             }
-                            runIntakeMot(0);
-                            setState(MechState.IDLE);
+                            if (stopIntakeMot()) {
+                                setState(MechState.IDLE);
+                                break;
+                            }
                             break;
                         }
                         setIndexer(INTAKE[intakeTargetIndex]);
                         intakeStageStart = System.currentTimeMillis();
-                        if (robot.intakeMot.getPower() == 0) {
-                            runIntakeMot(1);
-                        }
+                        runIntakeMot();
                         intakeStage = 1;
                         break;
                     case 1:
@@ -347,10 +340,11 @@ public class MechController {
                         }
 
                         if (System.currentTimeMillis() - intakeStageStart >= INTAKE_CUTOFF_MS) { // Timer cut-off
-                            runIntakeMot(0);
-                            setState(MechState.IDLE);
-                            intakeStage = 0;
-                            break;
+                            if (stopIntakeMot()) {
+                                setState(MechState.IDLE);
+                                intakeStage = 0;
+                                break;
+                            }
                         }
                 }
                 break;
@@ -518,27 +512,33 @@ public class MechController {
     }
 
     // Cleanup State
-
     private void onStateExit(MechState from, MechState to) {
         switch (from) {
             case INTAKE_STATE:
             case INTAKE_STATE_TELEOP:
-                // Stop intake motor and reset intake state machine
-                robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                robot.intakeMot.setPower(0);
-                targetPos = robot.intakeMot.getCurrentPosition();
-                intakeStage = 0;
-                intakeTargetIndex = -1;
-                intakeIndexerTargetDeg = -1;
-                indexerLastUpdateMs = 0;
-                lastIntake = false;
-                intakeIndexerStartDeg = -1;
+                if (targetPos == -1){
+                    robot.intakeMot.setPower(0);
+                    intakeStage = 0;
+                    intakeTargetIndex = -1;
+                    intakeIndexerTargetDeg = -1;
+                    indexerLastUpdateMs = 0;
+                    lastIntake = false;
+                    intakeIndexerStartDeg = -1;
+                } else {
+                    if (stopIntakeMot()) {
+                        intakeStage = 0;
+                        intakeTargetIndex = -1;
+                        intakeIndexerTargetDeg = -1;
+                        indexerLastUpdateMs = 0;
+                        lastIntake = false;
+                        intakeIndexerStartDeg = -1;
+                    }
+                }
                 break;
 
             case SHOOT_STATE:
             case SHOOT_PURPLE:
             case SHOOT_GREEN:
-                // Ensure shooter is off and shooting state is reset
                 runShootingMot(0);
                 shootingMotorRunning = false;
                 shootStage = 0;
@@ -564,23 +564,14 @@ public class MechController {
                 break;
         }
 
-        // When we enter IDLE, make sure all actuators are safe
         if (to == MechState.IDLE) {
-            // Stop intake
-            robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            robot.intakeMot.setPower(0);
-
-            // Stop shooter
             runShootingMot(0);
             shootingMotorRunning = false;
-
-            // Ensure lifter is down
             setLifter(0);
         }
     }
 
     // State machine methods
-
     public MechState getCurrentState() {
         return currentState;
     }
@@ -648,27 +639,36 @@ public class MechController {
         }
     }
 
-    public void runIntakeMot(double power) {
-        if (Math.abs(power) > 0.01) {
-            targetPos = 0;
-            if (robot.intakeMot.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) {
-                robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            }
-            robot.intakeMot.setPower(power);
-            return;
+    public void runIntakeMot() {
+        intakeStopping = false;
+        targetPos = -1;
+        if (robot.intakeMot.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) {
+            robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
-        if (targetPos == 0) {
-            double currentPos = robot.intakeMot.getCurrentPosition();
-            targetPos = (int) ((Math.ceil(currentPos / INTAKE_TICKS_PER_FULL_ROTATION) + 1) * INTAKE_TICKS_PER_FULL_ROTATION);
+        robot.intakeMot.setPower(1);
+    }
+
+    public boolean stopIntakeMot() {
+        if (!intakeStopping) {
+            int currentPos = robot.intakeMot.getCurrentPosition();
+            targetPos = (int) (
+                    (Math.ceil((double) currentPos / INTAKE_TICKS_PER_FULL_ROTATION) + 1)
+                            * INTAKE_TICKS_PER_FULL_ROTATION
+            );
             robot.intakeMot.setTargetPosition(targetPos);
             robot.intakeMot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.intakeMot.setPower(0.5);
+            intakeStopping = true;
         }
-        if (!robot.intakeMot.isBusy()) {
+
+        if (Math.abs(robot.intakeMot.getCurrentPosition() - targetPos) <= 50) {
             robot.intakeMot.setPower(0);
             robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            targetPos = 0;
+            targetPos = -1;
+            intakeStopping = false;
+            return true;
         }
+        return false;
     }
 
     double setFlywheelRpm(double flywheelRpm) {
@@ -689,8 +689,8 @@ public class MechController {
                 robot.shootingMot.setVelocity(setFlywheelRpm(SHOOTING_WHEEL_SPEED_NEAR));
                 flyWheelRPM = SHOOTING_WHEEL_SPEED_NEAR;
             } else {
-                robot.shootingMot.setVelocity(setFlywheelRpm(getShootingFarRPM()));
-                flyWheelRPM = getShootingFarRPM();
+                robot.shootingMot.setVelocity(setFlywheelRpm(SHOOTING_WHEEL_SPEED_FAR));
+                flyWheelRPM = SHOOTING_WHEEL_SPEED_FAR;
             }
         } else {
             robot.shootingMot.setVelocity(0);
@@ -698,19 +698,19 @@ public class MechController {
         }
     }
 
-    private double getShootingFarRPM() {
-        double voltage = robot.getBatteryVoltage();
-        if (voltage > 13.0) {
-            farRPM = SHOOTING_WHEEL_SPEED_FAR - 100;
-        } else if (voltage > 12.8) {
-            farRPM = SHOOTING_WHEEL_SPEED_FAR;
-        } else if (voltage > 12.6) {
-            farRPM = SHOOTING_WHEEL_SPEED_FAR + 100;
-        } else {
-            farRPM = SHOOTING_WHEEL_SPEED_FAR + 200;
-        }
-        return farRPM;
-    }
+//    private double getShootingFarRPM() {
+//        double voltage = robot.getBatteryVoltage();
+//        if (voltage > 13.0) {
+//            farRPM = SHOOTING_WHEEL_SPEED_FAR - 100;
+//        } else if (voltage > 12.8) {
+//            farRPM = SHOOTING_WHEEL_SPEED_FAR;
+//        } else if (voltage > 12.6) {
+//            farRPM = SHOOTING_WHEEL_SPEED_FAR + 100;
+//        } else {
+//            farRPM = SHOOTING_WHEEL_SPEED_FAR + 200;
+//        }
+//        return farRPM;
+//    }
 
     public void setLifter(int down0up1) {
         if (lastLifter != down0up1) {
