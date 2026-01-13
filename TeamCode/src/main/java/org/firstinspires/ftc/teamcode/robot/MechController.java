@@ -25,7 +25,7 @@ public class MechController {
     private static final long INTAKE_CUTOFF_MS = 4000; // 4 seconds wait time while searching for artifact
     private static final long POST_ROTATE_WAIT_MS = 90; // After every intake state rotation
     private static final long POST_HUMAN_WAIT_MS = 800; // After every human state rotation
-    private static final long POST_INDEXER_WAIT_MS = 1000; // Post Indexer rotation shooting
+    private static final long POST_INDEXER_WAIT_MS = 950; // Post Indexer rotation shooting
     private static final long LIFT_WAIT_MS = 800; // Lifter in Up position for shooting
     private static final long DROP_WAIT_MS = 500; // Post Lifter in Down position
     private static final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
@@ -485,10 +485,22 @@ public class MechController {
                 if (!humanIntakeRunning) {
                     humanIndex = getEmptyIndex(); // Finding slot 0 for intake
                     if (humanIndex != -1) { // Checking if all slots are full
-                        setIndexer(INTAKE[humanIndex]); // Setting indexer to intake position
+                        if (artifactCount < 1) {
+                            setIndexer(INTAKE[humanIndex]);
+                        } else {
+                            if (intakeIndexerTargetDeg < 0) {
+                                intakeIndexerTargetDeg = INTAKE[humanIndex];
+                                indexerLastUpdateMs = 0;
+                            }
+                            if (setIndexerIntake(intakeIndexerTargetDeg)) {
+                                intakeIndexerTargetDeg = -1;
+                            } else {
+                                break;
+                            }
+                        }
+                        //setIndexer(INTAKE[humanIndex]); // Setting indexer to intake position
                         humanStateStart = System.currentTimeMillis();
                         humanIntakeRunning = true;
-
                     } else {
                         setState(MechState.IDLE); // Stop human stage
                         break;
@@ -516,23 +528,14 @@ public class MechController {
         switch (from) {
             case INTAKE_STATE:
             case INTAKE_STATE_TELEOP:
-                if (targetPos == -1){
-                    robot.intakeMot.setPower(0);
+                if (stopIntakeMot()) {
                     intakeStage = 0;
                     intakeTargetIndex = -1;
                     intakeIndexerTargetDeg = -1;
                     indexerLastUpdateMs = 0;
                     lastIntake = false;
                     intakeIndexerStartDeg = -1;
-                } else {
-                    if (stopIntakeMot()) {
-                        intakeStage = 0;
-                        intakeTargetIndex = -1;
-                        intakeIndexerTargetDeg = -1;
-                        indexerLastUpdateMs = 0;
-                        lastIntake = false;
-                        intakeIndexerStartDeg = -1;
-                    }
+                    artifactCounted = false;
                 }
                 break;
 
@@ -558,6 +561,9 @@ public class MechController {
                 humanIntakeRunning = false;
                 humanIndex = -1;
                 humanStateStart = 0;
+                intakeIndexerTargetDeg = -1;
+                intakeIndexerStartDeg = -1;
+                indexerLastUpdateMs = 0;
                 break;
 
             default:
@@ -792,7 +798,7 @@ public class MechController {
                 "%.1f° | %.1f°", (statusIndexer() - SERVO_OFFSET), statusLifter());
 
         telemetry.addData(
-                "Flywheel RPM Target | Actual)",
+                "Flywheel RPM Target | Actual",
                 "%.0f | %.0f",
                 flyWheelRPM,
                 Math.abs(getFlywheelRPM())
