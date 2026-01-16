@@ -201,8 +201,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
                 case 12:
                     if(!follower.isBusy()) {
                         follower.followPath(grabPickup3,true);
-                        mechController.setState(MechState.INTAKE_STATE); // Intake
-                        // 3
+                        mechController.setState(MechState.INTAKE_STATE); // Intake 3
                         setPathState(13);
                     }
                     break;

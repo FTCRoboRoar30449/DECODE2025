@@ -37,7 +37,7 @@ public class MechController {
     static final double WHEEL_PULLEY_T = 54.0; // Tooth count on flywheel
     public static final double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
     public static double SHOOTING_WHEEL_SPEED_FAR = 5700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
-    private static final double INDEXER_DEG_PER_SEC_INTAKE = 160.0;
+    private static final double INDEXER_DEG_PER_SEC_INTAKE = 150.0;
     private static final double INDEXER_SLOW_END_DEG = 40.0;
     private static final double RPM_TOLERANCE = 100.0;
     private static final double INDEXER_TOLERANCE = 3.0;
@@ -221,7 +221,7 @@ public class MechController {
                             }
                             break;
                         }
-
+                        // Slow rotate after 1st & 2nd artifact
                         if (artifactCount < 1) {
                             setIndexer(INTAKE[intakeTargetIndex]);
                         } else {
@@ -241,41 +241,36 @@ public class MechController {
                         break;
 
                     case 1:
-                        if (System.currentTimeMillis() - intakeStageStart < POST_ROTATE_WAIT_MS) // Wait for indexer rotate
-                            break;
-                        intakeStageStart = System.currentTimeMillis();   // Start timer
-                        intakeStage = 2;
+                        if (System.currentTimeMillis() - intakeStageStart >= POST_ROTATE_WAIT_MS) { // Wait time before detecting artifact
+                            intakeStage = 2;
+                        }
                         break;
 
                     case 2:
                         int color = visionController.artifactColor();
                         boolean detected = color != 0;
 
-                        if (detected) { // Artifact detection
+                        if (detected && !artifactCounted) { // Artifact detection
+                            artifactCounted = true;
                             indexer[intakeTargetIndex] = color;
                             artifactCount++;
                             if (artifactCount == 3) { //Checks for last intake
                                 lastIntake = true;
                             }
-                            intakeStageStart = System.currentTimeMillis(); // Resets timer
-                            intakeStage = 3;
+                            intakeStage = 0;
                             break;
+                        }
+                        if (!detected && artifactCounted) {
+                            artifactCounted = false;
                         }
 
                         if (System.currentTimeMillis() - intakeStageStart >= INTAKE_CUTOFF_MS) { // Timer cut-off
                             if (stopIntakeMot()) {
                                 setState(MechState.IDLE);
                                 intakeStage = 0;
+                                break;
                             }
                         }
-                        break;
-
-                    case 3:
-                        if (System.currentTimeMillis() - intakeStageStart >= POST_ROTATE_WAIT_MS) { // Wait time after detected artifact
-                            intakeStageStart = 0;
-                            intakeStage = 0;
-                        }
-                        break;
                 }
                 break;
 
@@ -287,29 +282,31 @@ public class MechController {
                     case 0:
                         intakeTargetIndex = getEmptyIndex();
                         if (intakeTargetIndex == -1) { // Stop intake stage
-                            if (lastIntake) {
+                            if (!lastIntake) {
+                                if (stopIntakeMot()) {
+                                    setState(MechState.IDLE);
+                                    intakeStage = 0;
+                                    break;
+                                }
+                            } else { //Slow indexer start
                                 if (intakeIndexerTargetDeg < 0) {
                                     intakeIndexerTargetDeg = (statusIndexer() + 62);
-                                    indexerLastUpdateMs = System.currentTimeMillis();
+                                    indexerLastUpdateMs = 0;
                                 }
                                 if (setIndexerIntake(intakeIndexerTargetDeg)) {
+                                    intakeIndexerTargetDeg = -1;
+                                    lastIntake = false;
                                     if (stopIntakeMot()) {
-                                        intakeIndexerTargetDeg = -1;
-                                        lastIntake = false;
-                                        artifactCounted = false;
+                                        setState(MechState.IDLE);
                                         intakeStage = 0;
                                         break;
                                     }
-                                    break;
                                 }
-                                break;
-                            }
-                            if (stopIntakeMot()) {
-                                setState(MechState.IDLE);
                                 break;
                             }
                             break;
                         }
+                        // Fast rotate after 1st & 2nd artifact
                         setIndexer(INTAKE[intakeTargetIndex]);
                         intakeStageStart = System.currentTimeMillis();
                         runIntakeMot();
@@ -658,12 +655,12 @@ public class MechController {
         if (!intakeStopping) {
             int currentPos = robot.intakeMot.getCurrentPosition();
             targetPos = (int) (
-                    (Math.ceil((double) currentPos / INTAKE_TICKS_PER_FULL_ROTATION) + 1)
+                    (Math.ceil((double) currentPos / INTAKE_TICKS_PER_FULL_ROTATION) - 2)
                             * INTAKE_TICKS_PER_FULL_ROTATION
             );
             robot.intakeMot.setTargetPosition(targetPos);
             robot.intakeMot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.intakeMot.setPower(0.5);
+            robot.intakeMot.setPower(1);
             intakeStopping = true;
         }
 
@@ -805,7 +802,6 @@ public class MechController {
         );
 
         telemetry.addData("Battery Voltage", "%.2f V", robot.getBatteryVoltage());
-
         //visionController.sensorTelemetry();
         //visionController.aprilTagTelemetry();
 
