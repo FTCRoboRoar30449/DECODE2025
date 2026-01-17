@@ -167,9 +167,10 @@ public class AutoRedNear extends OpMode{
                 case 7:
                     if(!follower.isBusy()) {
                         follower.followPath(alignPickup2,true);
-                        setPathState(8);
+                        setPathState(-1);
                     }
                     break;
+                    /*
                 case 8:
                     if(!follower.isBusy()) {
                         follower.followPath(grabPickup2,true);
@@ -220,6 +221,7 @@ public class AutoRedNear extends OpMode{
                         setPathState(-1);
                     }
                     break;
+                     */
             }
         }
 

@@ -162,9 +162,10 @@ public class AutoBlueFar extends OpMode {
                     if(!follower.isBusy()) {
                         mechController.setState(MechState.SHOOT_STATE); // Shoot 1
                         follower.followPath(readyPickup2,true);
-                        setPathState(7);
+                        setPathState(-1);
                     }
                     break;
+                    /*
                 case 7:
                     if(!follower.isBusy()) {
                         follower.followPath(alignPickup2,true);
@@ -221,6 +222,7 @@ public class AutoBlueFar extends OpMode {
                         setPathState(-1);
                     }
                     break;
+                     */
             }
         }
 

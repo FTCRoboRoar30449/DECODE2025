@@ -16,7 +16,7 @@ public class MechController {
 
 
     // Hardware constants
-    private static final double SERVO_OFFSET = 104;
+    private static final double SERVO_OFFSET = 293;
     public static final double[] INTAKE = {0 + SERVO_OFFSET, 138 + SERVO_OFFSET, 271 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Intake Post degrees 0, 120, 240
     public static final double[] SHOOT = {209 + SERVO_OFFSET, 334 + SERVO_OFFSET, 475 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Shooting Post degrees 180, 300, 420
     private static final double MAX_LIFTER_ROTATION = 300.0; // Degrees
@@ -25,7 +25,7 @@ public class MechController {
     private static final long INTAKE_CUTOFF_MS = 4000; // 4 seconds wait time while searching for artifact
     private static final long POST_ROTATE_WAIT_MS = 90; // After every intake state rotation
     private static final long POST_HUMAN_WAIT_MS = 800; // After every human state rotation
-    private static final long POST_INDEXER_WAIT_MS = 950; // Post Indexer rotation shooting
+    private static final long POST_INDEXER_WAIT_MS = 900; // Post Indexer rotation shooting
     private static final long LIFT_WAIT_MS = 800; // Lifter in Up position for shooting
     private static final long DROP_WAIT_MS = 500; // Post Lifter in Down position
     private static final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
@@ -36,7 +36,7 @@ public class MechController {
     static final double MOTOR_PULLEY_T = 66.0; // Tooth count on motor
     static final double WHEEL_PULLEY_T = 54.0; // Tooth count on flywheel
     public static final double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
-    public static double SHOOTING_WHEEL_SPEED_FAR = 5700; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
+    public static double SHOOTING_WHEEL_SPEED_FAR = 5400; //5700 Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
     private static final double INDEXER_DEG_PER_SEC_INTAKE = 150.0;
     private static final double INDEXER_SLOW_END_DEG = 40.0;
     private static final double RPM_TOLERANCE = 100.0;

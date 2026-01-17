@@ -137,35 +137,36 @@ import org.firstinspires.ftc.vision.VisionPortal;
                     if(!follower.isBusy()) {
                         mechController.setState(MechState.SHOOT_STATE); // Shoot preload
                         follower.followPath(readyPickup1,true);
-                        setPathState(3);
-                    }
-                    break;
-                case 3:
-                    if(!follower.isBusy()) {
-                        follower.followPath(alignPickup1,true);
                         setPathState(4);
                     }
                     break;
                 case 4:
                     if(!follower.isBusy()) {
-                        follower.followPath(grabPickup1,true);
-                        mechController.setState(MechState.INTAKE_STATE); //Intake 1
+                        follower.followPath(alignPickup1,true);
                         setPathState(5);
                     }
                     break;
                 case 5:
                     if(!follower.isBusy()) {
-                        follower.followPath(scorePickup1,true);
+                        follower.followPath(grabPickup1,true);
+                        mechController.setState(MechState.INTAKE_STATE); //Intake 1
                         setPathState(6);
                     }
                     break;
                 case 6:
                     if(!follower.isBusy()) {
-                        mechController.setState(MechState.SHOOT_STATE); // Shoot 1
-                        follower.followPath(readyPickup2,true);
+                        follower.followPath(scorePickup1,true);
                         setPathState(7);
                     }
                     break;
+                case 7:
+                    if(!follower.isBusy()) {
+                        mechController.setState(MechState.SHOOT_STATE); // Shoot 1
+                        follower.followPath(readyPickup2,true);
+                        setPathState(-1);
+                    }
+                    break;
+                    /*
                 case 7:
                     if(!follower.isBusy()) {
                         follower.followPath(alignPickup2,true);
@@ -222,6 +223,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
                         setPathState(-1);
                     }
                     break;
+                     */
             }
         }
 
@@ -237,7 +239,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
             autonomousPathUpdate();
 
             MechState state = mechController.getCurrentState();
-            if (state == MechState.SHOOT_STATE || state == MechState.APRIL_TAG) {
+            if (state == MechState.SHOOT_STATE) {
                 follower.setMaxPower(0.0);
             } else if (state == MechState.INTAKE_STATE) {
                 follower.setMaxPower(MechController.INTAKE_DRIVE_POWER);
