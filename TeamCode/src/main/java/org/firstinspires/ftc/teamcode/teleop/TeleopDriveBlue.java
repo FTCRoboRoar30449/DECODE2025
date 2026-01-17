@@ -59,6 +59,11 @@ public class TeleopDriveBlue extends OpMode {
         mechController = new MechController(robot, visionController);
         mechController.handleMechState(MechState.START);
 
+        mechController.indexer[0] = 0;
+        mechController.indexer[1] = 0;
+        mechController.indexer[2] = 0;
+        mechController.artifactCount = 0;
+
         telemetry.addData("Status", "Initialized...");
         telemetry.update();
     }

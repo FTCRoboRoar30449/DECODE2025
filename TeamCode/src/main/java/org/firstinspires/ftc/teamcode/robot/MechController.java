@@ -17,6 +17,7 @@ public class MechController {
 
     // Hardware constants
     private static final double SERVO_OFFSET = 293;
+
     public static final double[] INTAKE = {0 + SERVO_OFFSET, 138 + SERVO_OFFSET, 271 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Intake Post degrees 0, 120, 240
     public static final double[] SHOOT = {209 + SERVO_OFFSET, 334 + SERVO_OFFSET, 475 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Shooting Post degrees 180, 300, 420
     private static final double MAX_LIFTER_ROTATION = 300.0; // Degrees
@@ -30,14 +31,14 @@ public class MechController {
     private static final long DROP_WAIT_MS = 500; // Post Lifter in Down position
     private static final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
     public static final double FULL_DRIVE_POWER = 1.0; // Normal Drive speed
-    public static final double INTAKE_DRIVE_POWER = 0.21; // Drive speed during Intake
+    public static final double INTAKE_DRIVE_POWER = 0.19; // Drive speed during Intake
     public static final double INTAKE_DRIVE_TELEOP = 0.5; // Drive speed during Intake
     static final double SHOOTER_CPR = 28.0; // REV HD Hex encoder counts/rev
     static final double MOTOR_PULLEY_T = 66.0; // Tooth count on motor
     static final double WHEEL_PULLEY_T = 54.0; // Tooth count on flywheel
     public static final double SHOOTING_WHEEL_SPEED_NEAR = 4300; // Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM
     public static double SHOOTING_WHEEL_SPEED_FAR = 5400; //5700 Flywheel RPM | Max flywheel RPM: 7333 | Flywheel RPM ≈ 6000 (Motor RPM) * 66/54 = 7333 RPM | Motor RPM ≈ 6000 (Flywheel RPM) * 54/66 = 4909 RPM | 6200
-    private static final double INDEXER_DEG_PER_SEC_INTAKE = 150.0;
+    private static final double INDEXER_DEG_PER_SEC_INTAKE = 160.0;
     private static final double INDEXER_SLOW_END_DEG = 40.0;
     private static final double RPM_TOLERANCE = 100.0;
     private static final double INDEXER_TOLERANCE = 3.0;
@@ -49,7 +50,7 @@ public class MechController {
     // Variables
     public int[] tagPattern = {0, 0, 0, 0}; // Tag ID & Pattern
     public int[] indexer = {2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
-    private int artifactCount = 3;
+    public int artifactCount = 3;
     private double lastIndexer = 1;
     private int lastLifter = 0;
     private int intakeTargetIndex = -1;
