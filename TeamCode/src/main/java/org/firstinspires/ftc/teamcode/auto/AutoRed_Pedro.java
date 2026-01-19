@@ -22,14 +22,14 @@ public class AutoRed_Pedro extends OpMode {
 
     private int pathState;
 
-    private final Pose startPose = Red.START_POSE;
+    private final Pose startPose = Red.START_POSE_FAR;
     private final Pose scorePose = Red.SCORE_POSE_AUTO;
-    private final Pose align1Pose = Red.ALIGN1_POSE;
-    private final Pose pickup1Pose = Red.PICKUP1_POSE;
-    private final Pose align2Pose = Red.ALIGN2_POSE;
-    private final Pose pickup2Pose = Red.PICKUP2_POSE;
-    private final Pose align3Pose = Red.ALIGN3_POSE;
-    private final Pose pickup3Pose = Red.PICKUP3_POSE;
+    private final Pose align1Pose = Red.ALIGN_FAR_POSE;
+    private final Pose pickup1Pose = Red.PICKUP_FAR_POSE;
+    private final Pose align2Pose = Red.ALIGN_MID_POSE;
+    private final Pose pickup2Pose = Red.PICKUP_MID_POSE;
+    private final Pose align3Pose = Red.ALIGN_NEAR_POSE;
+    private final Pose pickup3Pose = Red.PICKUP_NEAR_POSE;
 
     private Path scorePreload;
     private PathChain alignPickup1, grabPickup1, scorePickup1,

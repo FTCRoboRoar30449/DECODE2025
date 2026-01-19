@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.robot.MechController;
@@ -7,8 +8,8 @@ import org.firstinspires.ftc.teamcode.robot.MechState;
 import org.firstinspires.ftc.teamcode.robot.RobotHardware;
 import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
-
-@TeleOp(name = "TeleopMech", group = "Teleop")
+@Disabled
+@TeleOp(name = "TeleopMech", group = "Test")
 public class TeleopMech extends OpMode {
 
     RobotHardware robot;

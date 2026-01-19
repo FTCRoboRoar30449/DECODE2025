@@ -7,9 +7,9 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import org.firstinspires.ftc.teamcode.field.Blue;
+
+import org.firstinspires.ftc.teamcode.field.Red;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.MechController;
 import org.firstinspires.ftc.teamcode.robot.MechState;
@@ -17,9 +17,8 @@ import org.firstinspires.ftc.teamcode.robot.RobotHardware;
 import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
 
-@Disabled
-@Autonomous(name = "AutoBlue", group = "Blue")
-public class AutoBlue extends OpMode {
+@Autonomous(name = "AutoR_St_Far_En_Far", group = "Red")
+public class AutoR_St_Far_En_Far extends OpMode {
 
     RobotHardware robot;
     MechController mechController;
@@ -30,23 +29,17 @@ public class AutoBlue extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = Blue.START_POSE_FAR;
-    private final Pose aprilTagPose = Blue.APRILTAG_POSE_FAR;
-    private final Pose scorePoseAuto = Blue.SCORE_POSE_AUTO;
-    private final Pose scorePoseNear = Blue.SCORE_POSE_NEAR;
-    private final Pose readyFarPose = Blue.READY_FAR_POSE;
-    private final Pose alignFarPose = Blue.ALIGN_FAR_POSE;
-    private final Pose pickupFarPose = Blue.PICKUP_FAR_POSE;
-    private final Pose readyMidPose = Blue.READY_MID_POSE;
-    private final Pose alignMidPose = Blue.ALIGN_MID_POSE;
-    private final Pose pickupMidPose = Blue.PICKUP_MID_POSE;
-    private final Pose readyNearPose = Blue.READY_NEAR_POSE;
-    private final Pose alignNearPose = Blue.ALIGN_NEAR_POSE;
-    private final Pose pickupNearPose = Blue.PICKUP_NEAR_POSE;
+    private final Pose startPose = Red.START_POSE_FAR;
+    private final Pose aprilTagPose = Red.APRILTAG_POSE_FAR;
+    private final Pose scorePoseAuto = Red.SCORE_POSE_AUTO;
+    private final Pose readyFarPose = Red.READY_FAR_POSE;
+    private final Pose alignFarPose = Red.ALIGN_FAR_POSE;
+    private final Pose pickupFarPose = Red.PICKUP_FAR_POSE;
+    private final Pose endFarPose = Red.TELEOP_START_FAR;
 
 
     private Path aprilTagRead;
-    private PathChain scorePreload, readyFar, alignFar, grabFar, scoreFar, readyMid, alignMid, grabMid, scoreMid, readyNear, alignNear, grabNear, scoreNear;
+    private PathChain scorePreload, readyFar, alignFar, grabFar, scoreFar, endFar;
 
     public void buildPaths() {
         aprilTagRead = new Path(new BezierLine(startPose, aprilTagPose));
@@ -77,44 +70,9 @@ public class AutoBlue extends OpMode {
                 .setLinearHeadingInterpolation(pickupFarPose.getHeading(), scorePoseAuto.getHeading())
                 .build();
 
-        readyMid = follower.pathBuilder()
-                .addPath(new BezierLine(scorePoseAuto, readyMidPose))
-                .setLinearHeadingInterpolation(scorePoseAuto.getHeading(), readyMidPose.getHeading())
-                .build();
-
-        alignMid = follower.pathBuilder()
-                .addPath(new BezierLine(readyMidPose, alignMidPose))
-                .setLinearHeadingInterpolation(readyMidPose.getHeading(), alignMidPose.getHeading())
-                .build();
-
-        grabMid = follower.pathBuilder()
-                .addPath(new BezierLine(alignMidPose, pickupMidPose))
-                .setLinearHeadingInterpolation(alignMidPose.getHeading(), pickupMidPose.getHeading())
-                .build();
-
-        scoreMid = follower.pathBuilder()
-                .addPath(new BezierLine(pickupMidPose, scorePoseNear))
-                .setLinearHeadingInterpolation(pickupMidPose.getHeading(), scorePoseNear.getHeading())
-                .build();
-
-        readyNear = follower.pathBuilder()
-                .addPath(new BezierLine(scorePoseNear, readyNearPose))
-                .setLinearHeadingInterpolation(scorePoseNear.getHeading(), readyNearPose.getHeading())
-                .build();
-
-        alignNear = follower.pathBuilder()
-                .addPath(new BezierLine(readyNearPose, alignNearPose))
-                .setLinearHeadingInterpolation(readyNearPose.getHeading(), alignNearPose.getHeading())
-                .build();
-
-        grabNear = follower.pathBuilder()
-                .addPath(new BezierLine(alignNearPose, pickupNearPose))
-                .setLinearHeadingInterpolation(alignNearPose.getHeading(), pickupNearPose.getHeading())
-                .build();
-
-        scoreNear = follower.pathBuilder()
-                .addPath(new BezierLine(pickupNearPose, scorePoseNear))
-                .setLinearHeadingInterpolation(pickupNearPose.getHeading(), scorePoseNear.getHeading())
+        endFar = follower.pathBuilder()
+                .addPath(new BezierLine(scorePoseAuto, endFarPose))
+                .setLinearHeadingInterpolation(scorePoseAuto.getHeading(), endFarPose.getHeading())
                 .build();
     }
     public void autonomousPathUpdate() {
@@ -159,67 +117,10 @@ public class AutoBlue extends OpMode {
             case 6:
                 if(!follower.isBusy()) {
                     mechController.setState(MechState.SHOOT_STATE); // Shoot 1
-                    follower.followPath(readyMid,true);
+                    follower.followPath(endFar,true);
                     setPathState(-1);
                 }
                 break;
-            case 7:
-                if(!follower.isBusy()) {
-                    follower.followPath(alignMid,true);
-                    setPathState(8);
-                }
-                break;
-            case 8:
-                if(!follower.isBusy()) {
-                    follower.followPath(grabMid,true);
-                    mechController.setState(MechState.INTAKE_STATE); // Intake 2
-                    setPathState(9);
-                }
-                break;
-            case 9:
-                if(!follower.isBusy()) {
-                    follower.followPath(scoreMid, true);
-                    setPathState(10);
-                }
-                break;
-            case 10:
-                if(!follower.isBusy()) {
-                    mechController.setState(MechState.SHOOT_STATE); // Shoot 2
-                    follower.followPath(readyNear,true);
-                    setPathState(11);
-                }
-                break;
-            case 11:
-                if(!follower.isBusy()) {
-                    follower.followPath(alignNear,true);
-                    setPathState(12);
-                }
-                break;
-            case 12:
-                if(!follower.isBusy()) {
-                    follower.followPath(grabNear,true);
-                    mechController.setState(MechState.INTAKE_STATE); // Intake 3
-                    setPathState(13);
-                }
-                break;
-            case 13:
-                if(!follower.isBusy()) {
-                    follower.followPath(scoreNear, true);
-                    setPathState(14);
-                }
-                break;
-            case 14:
-                if(!follower.isBusy()) {
-                    mechController.setState(MechState.SHOOT_STATE); // Shoot 3
-                    setPathState(15);
-                }
-                break;
-            case 15:
-                if(!follower.isBusy()) {
-                    setPathState(-1);
-                }
-                break;
-
         }
     }
 

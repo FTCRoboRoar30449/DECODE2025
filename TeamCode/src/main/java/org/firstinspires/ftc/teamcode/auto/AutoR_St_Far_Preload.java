@@ -9,7 +9,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.field.Blue;
+import org.firstinspires.ftc.teamcode.field.Red;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.MechController;
 import org.firstinspires.ftc.teamcode.robot.MechState;
@@ -17,8 +17,8 @@ import org.firstinspires.ftc.teamcode.robot.RobotHardware;
 import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
 
-@Autonomous(name = "AutoIntakeTest", group = "Test")
-public class AutoBlue_IntakeTest extends OpMode {
+@Autonomous(name = "AutoR_St_Far_Preload", group = "Red")
+public class AutoR_St_Far_Preload extends OpMode {
 
     RobotHardware robot;
     MechController mechController;
@@ -29,32 +29,46 @@ public class AutoBlue_IntakeTest extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(22, 10, Math.toRadians(0));
-    private final Pose align1Pose = new Pose(20, 10, Math.toRadians(0));
-    private final Pose pickup1Pose = new Pose(2, 10, Math.toRadians(0));
+    private final Pose startPose = Red.START_POSE_FAR;
+    private final Pose aprilTagPose = Red.APRILTAG_POSE_FAR;
+    private final Pose scorePoseAuto = Red.SCORE_POSE_AUTO;
+    private final Pose endFarPose = Red.TELEOP_START_FAR;
 
-    private Path alignPickup1;
-    private PathChain grabPickup1;
+
+    private Path aprilTagRead;
+    private PathChain scorePreload, endFar;
 
     public void buildPaths() {
-        alignPickup1 = new Path(new BezierLine(startPose, align1Pose));
-        alignPickup1.setLinearHeadingInterpolation(startPose.getHeading(), align1Pose.getHeading());
+        aprilTagRead = new Path(new BezierLine(startPose, aprilTagPose));
+        aprilTagRead.setLinearHeadingInterpolation(startPose.getHeading(), aprilTagPose.getHeading());
 
-        grabPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(align1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(align1Pose.getHeading(), pickup1Pose.getHeading())
+        scorePreload = follower.pathBuilder()
+                .addPath(new BezierLine(aprilTagPose, scorePoseAuto))
+                .setLinearHeadingInterpolation(aprilTagPose.getHeading(), scorePoseAuto.getHeading())
+                .build();
+
+        endFar = follower.pathBuilder()
+                .addPath(new BezierLine(scorePoseAuto, endFarPose))
+                .setLinearHeadingInterpolation(scorePoseAuto.getHeading(), endFarPose.getHeading())
                 .build();
     }
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(alignPickup1);
+                follower.followPath(aprilTagRead);
+                mechController.setState(MechState.APRIL_TAG);
                 setPathState(1);
                 break;
             case 1:
                 if(!follower.isBusy()) {
-                    follower.followPath(grabPickup1, true);
-                    mechController.setState(MechState.INTAKE_STATE);
+                    follower.followPath(scorePreload, true);
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                if(!follower.isBusy()) {
+                    mechController.setState(MechState.SHOOT_STATE); // Shoot 1
+                    follower.followPath(endFar,true);
                     setPathState(-1);
                 }
                 break;
@@ -106,7 +120,6 @@ public class AutoBlue_IntakeTest extends OpMode {
         actionTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
-
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();

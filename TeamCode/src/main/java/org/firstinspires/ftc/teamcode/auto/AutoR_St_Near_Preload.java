@@ -9,7 +9,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.field.Blue;
+import org.firstinspires.ftc.teamcode.field.Red;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.MechController;
 import org.firstinspires.ftc.teamcode.robot.MechState;
@@ -17,8 +17,8 @@ import org.firstinspires.ftc.teamcode.robot.RobotHardware;
 import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
 
-@Autonomous(name = "AutoIntakeTest", group = "Test")
-public class AutoBlue_IntakeTest extends OpMode {
+@Autonomous(name = "AutoR_St_Near_Preload", group = "Red")
+public class AutoR_St_Near_Preload extends OpMode {
 
     RobotHardware robot;
     MechController mechController;
@@ -29,32 +29,59 @@ public class AutoBlue_IntakeTest extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(22, 10, Math.toRadians(0));
-    private final Pose align1Pose = new Pose(20, 10, Math.toRadians(0));
-    private final Pose pickup1Pose = new Pose(2, 10, Math.toRadians(0));
+    private final Pose startPose = Red.START_POSE_NEAR;
+    private final Pose aprilTagReachPose = Red.APRILTAG_POSE_NEAR_REACH;
+    private final Pose aprilTagPose = Red.APRILTAG_POSE_NEAR_READ;
+    private final Pose scorePoseNear = Red.SCORE_POSE_NEAR;
+    private final Pose endNearPose = Red.TELEOP_START_NEAR;
 
-    private Path alignPickup1;
-    private PathChain grabPickup1;
+
+    private Path aprilTagReach;
+    private PathChain aprilTagRead, scorePreload, endNear;
 
     public void buildPaths() {
-        alignPickup1 = new Path(new BezierLine(startPose, align1Pose));
-        alignPickup1.setLinearHeadingInterpolation(startPose.getHeading(), align1Pose.getHeading());
+        aprilTagReach = new Path(new BezierLine(startPose, aprilTagReachPose));
+        aprilTagReach.setLinearHeadingInterpolation(startPose.getHeading(), aprilTagReachPose.getHeading());
 
-        grabPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(align1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(align1Pose.getHeading(), pickup1Pose.getHeading())
+        aprilTagRead = follower.pathBuilder()
+                .addPath(new BezierLine(aprilTagReachPose, aprilTagPose))
+                .setLinearHeadingInterpolation(aprilTagReachPose.getHeading(), aprilTagPose.getHeading())
+                .build();
+
+        scorePreload = follower.pathBuilder()
+                .addPath(new BezierLine(aprilTagPose, scorePoseNear))
+                .setLinearHeadingInterpolation(aprilTagPose.getHeading(), scorePoseNear.getHeading())
+                .build();
+
+        endNear = follower.pathBuilder()
+                .addPath(new BezierLine(scorePoseNear, endNearPose))
+                .setLinearHeadingInterpolation(scorePoseNear.getHeading(), endNearPose.getHeading())
                 .build();
     }
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(alignPickup1);
+                follower.followPath(aprilTagReach);
+                mechController.setState(MechState.APRIL_TAG);
                 setPathState(1);
                 break;
             case 1:
                 if(!follower.isBusy()) {
-                    follower.followPath(grabPickup1, true);
-                    mechController.setState(MechState.INTAKE_STATE);
+                    follower.followPath(aprilTagRead);
+                    mechController.setState(MechState.APRIL_TAG);
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                if(!follower.isBusy()) {
+                    follower.followPath(scorePreload, true);
+                    setPathState(3);
+                }
+                break;
+            case 3:
+                if(!follower.isBusy()) {
+                    mechController.setState(MechState.SHOOT_STATE); // Shoot preload
+                    follower.followPath(endNear,true);
                     setPathState(-1);
                 }
                 break;

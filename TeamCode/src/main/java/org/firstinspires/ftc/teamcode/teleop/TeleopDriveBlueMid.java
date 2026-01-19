@@ -20,13 +20,11 @@ import org.firstinspires.ftc.teamcode.robot.RobotHardware;
 import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
 
-import java.util.function.Supplier;
-
 @Configurable
-@TeleOp(name = "TeleopBlue", group = "Teleop")
-public class TeleopDriveBlue extends OpMode {
+@TeleOp(name = "TeleopBlueMid", group = "Blue")
+public class TeleopDriveBlueMid extends OpMode {
     private Follower follower;
-    private final Pose startingPose = Blue.READY2_POSE;
+    private final Pose startingPose = Blue.TELEOP_START_MID;
     private final Pose scorePoseNear = Blue.SCORE_POSE_NEAR;
     private final Pose scorePoseFar = Blue.SCORE_POSE_FAR;
     private final Pose endgamePose = Blue.ENDGAME_POSE;
@@ -59,10 +57,10 @@ public class TeleopDriveBlue extends OpMode {
         mechController = new MechController(robot, visionController);
         mechController.handleMechState(MechState.START);
 
-        mechController.indexer[0] = 0;
-        mechController.indexer[1] = 0;
-        mechController.indexer[2] = 0;
-        mechController.artifactCount = 0;
+        mechController.indexer[0] = 1;
+        mechController.indexer[1] = 2;
+        mechController.indexer[2] = 1;
+        mechController.artifactCount = 3;
 
         telemetry.addData("Status", "Initialized...");
         telemetry.update();

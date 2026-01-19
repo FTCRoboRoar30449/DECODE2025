@@ -17,8 +17,8 @@ import org.firstinspires.ftc.teamcode.robot.RobotHardware;
 import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
 
-@Autonomous(name = "AutoIntakeTest", group = "Test")
-public class AutoBlue_IntakeTest extends OpMode {
+@Autonomous(name = "AutoB_St_Near_Preload", group = "Blue")
+public class AutoB_St_Near_Preload extends OpMode {
 
     RobotHardware robot;
     MechController mechController;
@@ -29,32 +29,58 @@ public class AutoBlue_IntakeTest extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(22, 10, Math.toRadians(0));
-    private final Pose align1Pose = new Pose(20, 10, Math.toRadians(0));
-    private final Pose pickup1Pose = new Pose(2, 10, Math.toRadians(0));
+    private final Pose startPose = Blue.START_POSE_NEAR;
+    private final Pose aprilTagPoseReach = Blue.APRILTAG_POSE_NEAR_REACH;
+    private final Pose aprilTagPose = Blue.APRILTAG_POSE_NEAR_READ;
+    private final Pose scorePoseNear = Blue.SCORE_POSE_NEAR;
+    private final Pose endNearPose = Blue.TELEOP_START_NEAR;
 
-    private Path alignPickup1;
-    private PathChain grabPickup1;
+
+    private Path aprilTagReach;
+    private PathChain aprilTagRead, scorePreload, endNear;
 
     public void buildPaths() {
-        alignPickup1 = new Path(new BezierLine(startPose, align1Pose));
-        alignPickup1.setLinearHeadingInterpolation(startPose.getHeading(), align1Pose.getHeading());
+        aprilTagReach = new Path(new BezierLine(startPose, aprilTagPoseReach));
+        aprilTagReach.setLinearHeadingInterpolation(startPose.getHeading(), aprilTagPoseReach.getHeading());
 
-        grabPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(align1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(align1Pose.getHeading(), pickup1Pose.getHeading())
+        aprilTagRead = follower.pathBuilder()
+                .addPath(new BezierLine(aprilTagPoseReach, aprilTagPose))
+                .setLinearHeadingInterpolation(aprilTagPoseReach.getHeading(), aprilTagPose.getHeading())
+                .build();
+
+        scorePreload = follower.pathBuilder()
+                .addPath(new BezierLine(aprilTagPose, scorePoseNear))
+                .setLinearHeadingInterpolation(aprilTagPose.getHeading(), scorePoseNear.getHeading())
+                .build();
+
+        endNear = follower.pathBuilder()
+                .addPath(new BezierLine(scorePoseNear, endNearPose))
+                .setLinearHeadingInterpolation(scorePoseNear.getHeading(), endNearPose.getHeading())
                 .build();
     }
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(alignPickup1);
+                follower.followPath(aprilTagReach);
                 setPathState(1);
                 break;
             case 1:
                 if(!follower.isBusy()) {
-                    follower.followPath(grabPickup1, true);
-                    mechController.setState(MechState.INTAKE_STATE);
+                    follower.followPath(aprilTagRead);
+                    mechController.setState(MechState.APRIL_TAG);
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                if(!follower.isBusy()) {
+                    follower.followPath(scorePreload, true);
+                    setPathState(3);
+                }
+                break;
+            case 3:
+                if(!follower.isBusy()) {
+                    mechController.setState(MechState.SHOOT_STATE); // Shoot preload
+                    follower.followPath(endNear,true);
                     setPathState(-1);
                 }
                 break;

@@ -12,7 +12,7 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.field.Red;
+import org.firstinspires.ftc.teamcode.field.Blue;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.MechController;
 import org.firstinspires.ftc.teamcode.robot.MechState;
@@ -20,19 +20,17 @@ import org.firstinspires.ftc.teamcode.robot.RobotHardware;
 import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
 
-import java.util.function.Supplier;
-
 @Configurable
-@TeleOp(name = "TeleopRed", group = "Teleop")
-public class TeleopDriveRed extends OpMode {
+@TeleOp(name = "TeleopBlueNear", group = "Blue")
+public class TeleopDriveBlueNear extends OpMode {
     private Follower follower;
-    private final Pose startingPose = Red.START_POSE;
-    private final Pose scorePoseNear = Red.SCORE_POSE_NEAR;
-    private final Pose scorePoseFar = Red.SCORE_POSE_FAR;
-    private final Pose endgamePose = Red.ENDGAME_POSE;
-    private final Pose gateStartPose = Red.GATE_START_POSE;
-    private final Pose gateEndPose = Red.GATE_END_POSE;
-    private final Pose humanPose = Red.HUMAN_STATE_POSE;
+    private final Pose startingPose = Blue.TELEOP_START_NEAR;
+    private final Pose scorePoseNear = Blue.SCORE_POSE_NEAR;
+    private final Pose scorePoseFar = Blue.SCORE_POSE_FAR;
+    private final Pose endgamePose = Blue.ENDGAME_POSE;
+    private final Pose gateStartPose = Blue.GATE_START_POSE;
+    private final Pose gateEndPose = Blue.GATE_END_POSE;
+    private final Pose humanPose = Blue.HUMAN_STATE_POSE;
     private boolean automatedDrive;
     private TelemetryManager telemetryM;
     private boolean slowMode = false;
@@ -132,15 +130,15 @@ public class TeleopDriveRed extends OpMode {
 
         if (!automatedDrive) {
             if (!slowMode) follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
+                    gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
                     -gamepad1.right_stick_x,
                     false // true = Robot Centric | false = Field Centric
             );
 
             else follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * slowModeMultiplier,
-                    -gamepad1.left_stick_x * slowModeMultiplier,
+                    gamepad1.left_stick_y * slowModeMultiplier,
+                    gamepad1.left_stick_x * slowModeMultiplier,
                     -gamepad1.right_stick_x * slowModeMultiplier,
                     false // true = Robot Centric | false = Field Centric
             );
@@ -207,17 +205,17 @@ public class TeleopDriveRed extends OpMode {
 
         boolean noButtons =
                 gamepad1.right_trigger <= 0.2 &&
-                        gamepad2.left_trigger <= 0.2 &&
-                        gamepad2.right_trigger <= 0.2 &&
-                        !gamepad2.left_bumper &&
-                        !gamepad2.right_bumper &&
-                        !gamepad2.a &&
-                        !gamepad2.b &&
-                        !gamepad2.dpad_up &&
-                        !gamepad2.dpad_right &&
-                        !gamepad2.dpad_down &&
-                        !gamepad1.dpad_up &&
-                        !gamepad1.dpad_down;
+                gamepad2.left_trigger <= 0.2 &&
+                gamepad2.right_trigger <= 0.2 &&
+                !gamepad2.left_bumper &&
+                !gamepad2.right_bumper &&
+                !gamepad2.a &&
+                !gamepad2.b &&
+                !gamepad2.dpad_up &&
+                !gamepad2.dpad_right &&
+                !gamepad2.dpad_down &&
+                !gamepad1.dpad_up &&
+                !gamepad1.dpad_down;
 
         if (noButtons) {
             buttonPressed = false;

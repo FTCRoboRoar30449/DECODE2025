@@ -22,7 +22,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import java.util.List;
 import java.util.Locale;
 
-@TeleOp(name = "TeleopAprilTag", group = "Teleop")
+@TeleOp(name = "TeleopAprilTag", group = "Test")
 @Disabled
 public class TeleopAprilTag extends OpMode {
 

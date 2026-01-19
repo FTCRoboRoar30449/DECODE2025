@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp(name = "TeleopBlue_Pedro", group = "Teleop")
+@TeleOp(name = "TeleopBlue_Pedro", group = "Test")
 @Disabled
 public class TeleopDriveBlue_Pedro extends OpMode {
     private Follower follower;
