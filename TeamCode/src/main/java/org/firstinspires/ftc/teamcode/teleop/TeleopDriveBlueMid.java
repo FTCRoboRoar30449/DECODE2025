@@ -11,7 +11,6 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
 import org.firstinspires.ftc.teamcode.field.Blue;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.MechController;
@@ -27,6 +26,7 @@ public class TeleopDriveBlueMid extends OpMode {
     private final Pose startingPose = Blue.TELEOP_START_MID;
     private final Pose scorePoseNear = Blue.SCORE_POSE_NEAR;
     private final Pose scorePoseFar = Blue.SCORE_POSE_FAR;
+    private final Pose scorePoseAuto = Blue.SCORE_POSE_AUTO;
     private final Pose endgamePose = Blue.ENDGAME_POSE;
     private final Pose gateStartPose = Blue.GATE_START_POSE;
     private final Pose gateEndPose = Blue.GATE_END_POSE;
@@ -99,7 +99,7 @@ public class TeleopDriveBlueMid extends OpMode {
         } else if ((gamepad2.right_trigger > 0.2) && !buttonPressed) {
             buttonPressed = true;
             mechController.setState(MechState.SHOOT_STATE);
-        } else if ((gamepad2.left_trigger > 0.2) && !buttonPressed) {
+        } else if ((gamepad1.right_bumper) && !buttonPressed) {
             buttonPressed = true;
             mechController.setState(MechState.HUMAN_STATE);
         }else if ((gamepad2.left_bumper) && !buttonPressed) {
@@ -163,6 +163,16 @@ public class TeleopDriveBlueMid extends OpMode {
             automatedDrive = true;
         }
 
+        //Shooting Pose Auto
+        if (gamepad2.xWasPressed()) {
+            PathChain shootingPath = follower.pathBuilder()
+                    .addPath(new Path(new BezierLine(follower::getPose, scorePoseAuto)))
+                    .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, scorePoseAuto.getHeading(), 0.8))
+                    .build();
+            follower.followPath(shootingPath);
+            automatedDrive = true;
+        }
+
         //Gate Pose
         if (gamepad1.left_trigger > 0.1 && !automatedDrive) {
             PathChain gatePath = follower.pathBuilder()
@@ -184,7 +194,7 @@ public class TeleopDriveBlueMid extends OpMode {
         }
 
         //Human State Pose
-        if (gamepad2.xWasPressed()) {
+        if (gamepad1.aWasPressed()) {
             PathChain endgamePath = follower.pathBuilder()
                     .addPath(new Path(new BezierLine(follower::getPose, humanPose)))
                     .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, humanPose.getHeading(), 0.8))
@@ -205,17 +215,15 @@ public class TeleopDriveBlueMid extends OpMode {
 
         boolean noButtons =
                 gamepad1.right_trigger <= 0.2 &&
-                gamepad2.left_trigger <= 0.2 &&
-                gamepad2.right_trigger <= 0.2 &&
-                !gamepad2.left_bumper &&
-                !gamepad2.right_bumper &&
-                !gamepad2.a &&
-                !gamepad2.b &&
-                !gamepad2.dpad_up &&
-                !gamepad2.dpad_right &&
-                !gamepad2.dpad_down &&
-                !gamepad1.dpad_up &&
-                !gamepad1.dpad_down;
+                        gamepad2.right_trigger <= 0.2 &&
+                        !gamepad2.left_bumper &&
+                        !gamepad2.right_bumper &&
+                        !gamepad2.b &&
+                        !gamepad2.dpad_up &&
+                        !gamepad2.dpad_right &&
+                        !gamepad2.dpad_down &&
+                        !gamepad1.dpad_up &&
+                        !gamepad1.dpad_down;
 
         if (noButtons) {
             buttonPressed = false;
