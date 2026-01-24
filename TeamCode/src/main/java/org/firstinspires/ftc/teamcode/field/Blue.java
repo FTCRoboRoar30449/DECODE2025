@@ -18,19 +18,19 @@ public class Blue {
     public static final Pose SCORE_POSE_FAR   = new Pose(80, 21, Math.toRadians(122.5));
 
     // Highest (First Set) of Artifacts from the Spike Mark.
-    public static final Pose READY_FAR_POSE = new Pose(45.5, 36,Math.toRadians(0));
+    public static final Pose READY_FAR_POSE = new Pose(47.5, 36,Math.toRadians(0));
     public static final Pose ALIGN_FAR_POSE = new Pose(42.5, 36, Math.toRadians(0));
     public static final Pose PICKUP_FAR_POSE = new Pose(24.5, 36, Math.toRadians(0));
 
     // Middle (Second Set) of Artifacts from the Spike Mark.
-    public static final Pose READY_MID_POSE = new Pose(45.5, 60,Math.toRadians(0));
+    public static final Pose READY_MID_POSE = new Pose(47.5, 60,Math.toRadians(0));
     public static final Pose ALIGN_MID_POSE  = new Pose(42.5, 60, Math.toRadians(0));
     public static final Pose PICKUP_MID_POSE = new Pose(24.5, 60, Math.toRadians(0));
 
     // Lowest (Last Set) of Artifacts from the Spike Mark.
-    public static final Pose READY_NEAR_POSE = new Pose(45.5, 84,Math.toRadians(0));
-    public static final Pose ALIGN_NEAR_POSE  = new Pose(42.5, 84, Math.toRadians(0));
-    public static final Pose PICKUP_NEAR_POSE = new Pose(24.5, 84, Math.toRadians(0));
+    public static final Pose READY_NEAR_POSE = new Pose(47.5, 85,Math.toRadians(0));
+    public static final Pose ALIGN_NEAR_POSE  = new Pose(42.5, 85, Math.toRadians(0));
+    public static final Pose PICKUP_NEAR_POSE = new Pose(24.5, 85, Math.toRadians(0));
 
     // Teleop
     public static final Pose TELEOP_START_FAR = new Pose(36, 12,Math.toRadians(90));

@@ -63,10 +63,10 @@ public class TeleopServoTest extends LinearOpMode {
                 //
 
                 if (gamepad1.a) currentAngleDeg = 0 + SERVO_OFFSET; // Intake 0 | 0
-                if (gamepad1.b) currentAngleDeg = 209 + SERVO_OFFSET; // Shoot 0 | 180
+                if (gamepad1.b) currentAngleDeg = 208 + SERVO_OFFSET; // Shoot 0 | 180
                 if (gamepad1.x) currentAngleDeg = 138 + SERVO_OFFSET; // Intake 1 | 120
-                if (gamepad1.y) currentAngleDeg = 334 + SERVO_OFFSET; // Shoot 1 | 300
-                if (gamepad1.dpad_up) currentAngleDeg = 271 + SERVO_OFFSET; // Intake 2 | 240
+                if (gamepad1.y) currentAngleDeg = 351 + SERVO_OFFSET; // Shoot 1 | 300
+                if (gamepad1.dpad_up) currentAngleDeg = 282 + SERVO_OFFSET; // Intake 2 | 240
                 if (gamepad1.dpad_down) currentAngleDeg = 475 + SERVO_OFFSET; // Shoot 2 | 460
 
             } else {
